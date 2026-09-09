@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0">
+<title>508 SAT Vocabulary Flashcards</title>
+
+<!-- iOS / PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1f2c4c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SAT Cards">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png">
+<link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167.png">
+<link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+
+<style>
+  :root{
+    --paper:#f4f0e6;
+    --card:#fffdf8;
+    --ink:#22283a;
+    --navy:#1f2c4c;
+    --maroon:#7c2430;
+    --gold:#a9813f;
+    --line:#ddd5c2;
+    --muted:#726b5c;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle at 15% 10%, rgba(124,36,48,0.05), transparent 40%),
+      radial-gradient(circle at 85% 90%, rgba(31,44,76,0.06), transparent 40%),
+      var(--paper);
+    color:var(--ink);
+    font-family: "Iowan Old Style","Palatino Linotype",Georgia,"Times New Roman",serif;
+    min-height:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding: max(28px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(40px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+    -webkit-text-size-adjust: 100%;
+  }
+
+  header{
+    width:100%;
+    max-width:640px;
+    text-align:center;
+    margin-bottom:18px;
+  }
+  header h1{
+    font-size:1.5rem;
+    letter-spacing:0.01em;
+    margin:0 0 4px;
+    font-weight:600;
+    color:var(--navy);
+  }
+  header p{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    font-size:0.85rem;
+    color:var(--muted);
+  }
+
+  .deck-wrap{
+    width:100%;
+    max-width:640px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+
+  .meta-row{
+    width:100%;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    font-size:0.78rem;
+    color:var(--muted);
+    margin-bottom:8px;
+    padding:0 4px;
+  }
+  .progress-track{
+    flex:1;
+    height:3px;
+    background:var(--line);
+    margin:0 12px;
+    border-radius:2px;
+    overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;
+    background:var(--maroon);
+    width:0%;
+    transition:width .25s ease;
+  }
+
+  .stage{
+    perspective:1400px;
+    width:100%;
+    aspect-ratio: 5 / 3;
+    max-height:min(58vh, 420px);
+    cursor:pointer;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: pan-y;
+  }
+  .card{
+    position:relative;
+    width:100%;
+    height:100%;
+    transition: transform .5s cubic-bezier(.2,.8,.2,1);
+    transform-style: preserve-3d;
+  }
+  .card.flipped{ transform: rotateY(180deg); }
+  .card.no-anim{ transition:none; }
+
+  .face{
+    position:absolute;
+    inset:0;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:10px;
+    box-shadow: 0 1px 2px rgba(35,25,10,0.06), 0 10px 24px -14px rgba(35,25,10,0.35);
+    backface-visibility:hidden;
+    display:flex;
+    flex-direction:column;
+    padding: clamp(16px,4vw,32px);
+  }
+  .face::before{
+    content:"";
+    position:absolute;
+    inset:6px;
+    border:1px solid rgba(124,36,48,0.14);
+    border-radius:7px;
+    pointer-events:none;
+  }
+
+  .front{
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .front .word{
+    font-size: clamp(1.8rem, 6vw, 3rem);
+    font-weight:700;
+    color:var(--navy);
+    letter-spacing:0.01em;
+  }
+  .front .hint{
+    margin-top:14px;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    font-size:0.72rem;
+    text-transform:uppercase;
+    letter-spacing:0.14em;
+    color:var(--muted);
+  }
+
+  .back{
+    transform: rotateY(180deg);
+    justify-content:flex-start;
+    overflow-y:auto;
+  }
+  .back .word-small{
+    font-size:1.15rem;
+    font-weight:700;
+    color:var(--navy);
+    margin-bottom:8px;
+  }
+  .field{ margin-bottom:10px; }
+  .field:last-child{ margin-bottom:0; }
+  .field .label{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    font-size:0.66rem;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--maroon);
+    font-weight:700;
+    margin-bottom:2px;
+  }
+  .field .value{
+    font-size:0.95rem;
+    line-height:1.38;
+    color:var(--ink);
+    -webkit-user-select: text;
+    user-select: text;
+  }
+  .field .value.usage{
+    font-style:italic;
+    color:#3b4258;
+  }
+  hr.rule{
+    border:none;
+    border-top:1px solid var(--line);
+    margin:2px 0 10px;
+  }
+
+  .controls{
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    margin-top:18px;
+    flex-wrap:wrap;
+  }
+  button{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    font-size:0.85rem;
+    font-weight:600;
+    border-radius:7px;
+    border:1px solid var(--line);
+    background:var(--card);
+    color:var(--navy);
+    padding:9px 14px;
+    cursor:pointer;
+    transition: background .15s ease, transform .1s ease, border-color .15s ease;
+  }
+  button:hover{ border-color:var(--navy); }
+  button:active{ transform: scale(0.96); }
+  button.primary{
+    background:var(--navy);
+    color:#fdfbf6;
+    border-color:var(--navy);
+  }
+  button.primary:hover{ background:#16203a; }
+  button.ghost{
+    background:transparent;
+  }
+  button.nav{
+    min-width:44px;
+  }
+  button:disabled{ opacity:0.35; cursor:default; }
+
+  .status-row{
+    margin-top:14px;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    font-size:0.75rem;
+    color:var(--muted);
+    display:flex;
+    gap:16px;
+    align-items:center;
+  }
+  .status-row button{
+    padding:4px 10px;
+    font-size:0.72rem;
+  }
+  .known-tag{
+    padding:2px 8px;
+    border-radius:20px;
+    background:rgba(124,36,48,0.08);
+    color:var(--maroon);
+  }
+
+  footer{
+    margin-top:22px;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    font-size:0.7rem;
+    color:var(--muted);
+    text-align:center;
+    max-width:520px;
+  }
+  kbd{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:1px 6px;
+    font-family:inherit;
+  }
+
+  .banner{
+    width:100%;
+    max-width:640px;
+    background:#f0e9d8;
+    border:1px solid var(--gold);
+    border-radius:8px;
+    padding:10px 14px;
+    margin-bottom:14px;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    font-size:0.8rem;
+    color:#5a4a26;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .banner button{
+    padding:5px 10px;
+    font-size:0.75rem;
+    white-space:nowrap;
+  }
+  .banner.hidden{ display:none; }
+
+  @media (max-width:480px){
+    .stage{ max-height:52vh; }
+    .controls button{ padding:9px 11px; font-size:0.8rem; }
+  }
+
+  @media (min-width:900px){
+    header, .deck-wrap, .banner{ max-width:760px; }
+    header h1{ font-size:1.7rem; }
+    .stage{ max-height:min(62vh, 480px); }
+    .front .word{ font-size: clamp(2.2rem, 4vw, 3.4rem); }
+    body{ padding-top:44px; }
+    .stage:hover .face{ box-shadow: 0 2px 4px rgba(35,25,10,0.08), 0 16px 32px -16px rgba(35,25,10,0.4); }
+  }
+
+  @media (hover:hover) and (pointer:fine){
+    button:hover{ background:#efe9da; }
+    button.primary:hover{ background:#16203a; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>508 SAT-Level Vocabulary</h1>
+  <p>Tap or click the card to flip. Shuffle to randomize order.</p>
+</header>
+
+<div class="banner hidden" id="restoreBanner">
+  <span id="restoreBannerText"></span>
+  <button id="exitReviewOnLoadBtn" class="ghost">Study full deck instead</button>
+</div>
+
+<div class="banner hidden" id="iosTipBanner">
+  <span>Tip: tap <strong>Share</strong> &#8594; <strong>Add to Home Screen</strong> for a full-screen app with an icon.</span>
+  <button id="dismissIosTipBtn" class="ghost">Got it</button>
+</div>
+
+<div class="deck-wrap">
+
+  <div class="meta-row">
+    <span id="posLabel">1 / 508</span>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <span id="shuffleLabel">In order</span>
+  </div>
+
+  <div class="stage" id="stage">
+    <div class="card" id="card">
+      <div class="face front">
+        <div class="word" id="wordFront">Word</div>
+        <div class="hint">Tap to reveal</div>
+      </div>
+      <div class="face back">
+        <div class="word-small" id="wordBack">Word</div>
+        <hr class="rule">
+        <div class="field">
+          <div class="label">Meaning</div>
+          <div class="value" id="meaningVal"></div>
+        </div>
+        <div class="field">
+          <div class="label">Root / Etymology</div>
+          <div class="value" id="rootVal"></div>
+        </div>
+        <div class="field">
+          <div class="label">Usage</div>
+          <div class="value usage" id="usageVal"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="nav" id="prevBtn" title="Previous (←)">&#8592;</button>
+    <button class="primary" id="flipBtn" title="Flip (Space)">Flip card</button>
+    <button class="nav" id="nextBtn" title="Next (→)">&#8594;</button>
+  </div>
+
+  <div class="controls">
+    <button id="shuffleBtn">&#128260; Shuffle</button>
+    <button id="orderBtn" class="ghost">Reset order</button>
+    <button id="markBtn" class="ghost">Mark for review</button>
+  </div>
+
+  <div class="status-row">
+    <span id="markedCount" class="known-tag">0 marked</span>
+    <button id="reviewModeBtn" class="ghost">Study marked only</button>
+    <button id="restartBtn" class="ghost">Start over</button>
+    <button id="clearMarksBtn" class="ghost">Clear saved marks</button>
+  </div>
+  <div class="status-row" id="saveStatusRow" style="margin-top:4px;">
+    <span id="saveStatus"></span>
+  </div>
+
+</div>
+
+<footer>
+  <span class="kbd-hint">Space/Enter flip &nbsp;·&nbsp; &#8592; &#8594; or two-finger swipe navigate &nbsp;·&nbsp; S shuffle</span>
+</footer>
+
+<script>
+const WORDS = [{"word": "Abstruse", "meaning": "Difficult to understand; obscure", "root": "Lat. abstrudere, 'to conceal, thrust away'", "usage": "The professor's abstruse lecture on quantum topology left most of the class bewildered."}, {"word": "Acerbic", "meaning": "Sharp, biting, or sour in tone", "root": "Lat. acerbus, 'harsh, bitter'", "usage": "Her acerbic review of the restaurant left the chef fuming for weeks."}, {"word": "Adumbrate", "meaning": "To outline faintly or foreshadow", "root": "Lat. adumbrare, 'to cast a shadow on'", "usage": "The opening chapter adumbrates the tragedy that unfolds later in the novel."}, {"word": "Anodyne", "meaning": "Not likely to offend; inoffensively bland", "root": "Gk. anodynos, 'free from pain'", "usage": "The senator gave an anodyne response that satisfied no one but angered no one either."}, {"word": "Antediluvian", "meaning": "Extremely old or outdated", "root": "Lat. ante, 'before' + diluvium, 'flood'", "usage": "His antediluvian views on workplace technology frustrated the younger staff."}, {"word": "Apocryphal", "meaning": "Of doubtful authenticity, although widely circulated as true", "root": "Gk. apokryphos, 'hidden, obscure'", "usage": "The story of the founder inventing the product overnight is likely apocryphal."}, {"word": "Approbation", "meaning": "Approval or praise", "root": "Lat. approbare, 'to approve'", "usage": "The young violinist basked in the approbation of the critics after her debut."}, {"word": "Arrogate", "meaning": "To claim or seize without right", "root": "Lat. arrogare, 'to claim for oneself'", "usage": "The general arrogated powers to himself that the constitution never granted."}, {"word": "Ascetic", "meaning": "Practicing severe self-discipline and abstention", "root": "Gk. asketes, 'monk, hermit'", "usage": "He lived an ascetic life in the mountains, owning almost nothing."}, {"word": "Asperity", "meaning": "Harshness of tone or manner", "root": "Lat. asper, 'rough'", "usage": "She addressed the intern with unexpected asperity after the missed deadline."}, {"word": "Assiduous", "meaning": "Showing great care and perseverance", "root": "Lat. assiduus, 'sitting close to, constant'", "usage": "His assiduous note-taking made him the most reliable source in the study group."}, {"word": "Attenuate", "meaning": "To reduce in force, effect, or value", "root": "Lat. attenuare, 'to make thin'", "usage": "The new regulations attenuated the company's ability to pollute freely."}, {"word": "Audacious", "meaning": "Extremely bold or daring", "root": "Lat. audax, 'bold'", "usage": "It was an audacious plan to cross the desert with only a single canteen."}, {"word": "Auspicious", "meaning": "Conducive to success; favorable", "root": "Lat. auspicium, 'divination by birds'", "usage": "The clear skies on opening day seemed an auspicious sign for the festival."}, {"word": "Avuncular", "meaning": "Kind and friendly toward a younger person, like an uncle", "root": "Lat. avunculus, 'maternal uncle'", "usage": "The old professor had an avuncular way of correcting his students' mistakes."}, {"word": "Bellicose", "meaning": "Demonstrating aggression and willingness to fight", "root": "Lat. bellum, 'war'", "usage": "The bellicose rhetoric from both leaders alarmed the international community."}, {"word": "Bilious", "meaning": "Spiteful; ill-tempered", "root": "Lat. bilis, 'bile'", "usage": "The critic's bilious tone made the review feel more like an attack than an assessment."}, {"word": "Bombastic", "meaning": "High-sounding but with little meaning; inflated", "root": "Gk. bombax, 'cotton, padding'", "usage": "His bombastic speech was full of grand phrases but offered no real plan."}, {"word": "Bowdlerize", "meaning": "To remove material considered improper from a text", "root": "Named for Thomas Bowdler", "usage": "The publisher bowdlerized the classic novel for its young-adult edition."}, {"word": "Brusque", "meaning": "Abrupt or blunt in manner", "root": "It. brusco, 'sharp, tart'", "usage": "The doctor's brusque manner unsettled patients even when his diagnoses were correct."}, {"word": "Cacophony", "meaning": "A harsh, discordant mixture of sounds", "root": "Gk. kakos, 'bad' + phone, 'sound'", "usage": "The orchestra warming up produced a cacophony before the conductor arrived."}, {"word": "Cajole", "meaning": "To persuade through flattery or deception", "root": "Fr. cajoler, 'to coax'", "usage": "She cajoled her brother into lending her the car for the weekend."}, {"word": "Callow", "meaning": "Inexperienced and immature", "root": "OE calu, 'bald, unfledged'", "usage": "The callow recruit had no idea how to respond to the sergeant's questions."}, {"word": "Capricious", "meaning": "Given to sudden, unaccountable changes of mood", "root": "It. capriccio, 'a shiver, whim'", "usage": "The capricious weather in the mountains could shift from sun to snow in an hour."}, {"word": "Castigate", "meaning": "To reprimand severely", "root": "Lat. castigare, 'to correct, punish'", "usage": "The coach castigated the team for their lack of discipline during the match."}, {"word": "Chicanery", "meaning": "The use of trickery to achieve a purpose", "root": "Fr. chicane, 'trickery, quibbling'", "usage": "The merger was later revealed to have been arranged through financial chicanery."}, {"word": "Circuitous", "meaning": "Longer than the most direct way; roundabout", "root": "Lat. circuitus, 'a going around'", "usage": "We took a circuitous route through the hills to avoid the flooded highway."}, {"word": "Circumlocution", "meaning": "The use of many words where fewer would do", "root": "Lat. circum, 'around' + loqui, 'to speak'", "usage": "He buried his refusal in so much circumlocution that no one realized he'd said no."}, {"word": "Cloying", "meaning": "Sickly sweet or sentimental to an excessive degree", "root": "ME cloyen, 'to nail, clog'", "usage": "The cloying perfume filled the small elevator within seconds."}, {"word": "Coalesce", "meaning": "To come together to form one mass or whole", "root": "Lat. coalescere, 'to grow together'", "usage": "The scattered protest groups eventually coalesced into a single movement."}, {"word": "Cogent", "meaning": "Clear, logical, and convincing", "root": "Lat. cogere, 'to compel'", "usage": "Her cogent argument left no room for the opposing counsel to respond."}, {"word": "Comport", "meaning": "To conduct oneself; behave", "root": "Lat. comportare, 'to bring together'", "usage": "He comported himself with dignity even after the humiliating defeat."}, {"word": "Conciliatory", "meaning": "Intended to placate or pacify", "root": "Lat. conciliare, 'to bring together'", "usage": "The manager's conciliatory email came only after the client had already left."}, {"word": "Contumacious", "meaning": "Stubbornly disobedient; rebellious", "root": "Lat. contumax, 'insolent'", "usage": "The judge held the contumacious witness in contempt for refusing to answer."}, {"word": "Contrite", "meaning": "Feeling remorseful for wrongdoing", "root": "Lat. conterere, 'to grind, wear down'", "usage": "His contrite apology did little to repair the damage he had caused."}, {"word": "Convivial", "meaning": "Friendly, lively, and enjoyable", "root": "Lat. convivium, 'a feast, banquet'", "usage": "The convivial atmosphere of the dinner party lasted well past midnight."}, {"word": "Copious", "meaning": "Abundant in supply or quantity", "root": "Lat. copia, 'abundance'", "usage": "She took copious notes throughout the three-hour lecture."}, {"word": "Craven", "meaning": "Contemptibly lacking courage", "root": "OF cravanter, 'to crush, defeat'", "usage": "The general branded the retreat a craven abandonment of their post."}, {"word": "Culpable", "meaning": "Deserving blame", "root": "Lat. culpa, 'fault, blame'", "usage": "The audit found the accountant culpable for the missing funds."}, {"word": "Cursory", "meaning": "Hasty and therefore not thorough", "root": "Lat. cursus, 'a running'", "usage": "A cursory glance at the report missed the error buried in the footnotes."}, {"word": "Dearth", "meaning": "A scarcity or lack of something", "root": "ME derthe, related to 'dear'", "usage": "There is a dearth of affordable housing in the city center."}, {"word": "Debacle", "meaning": "A sudden, ignominious failure; a fiasco", "root": "Fr. d\u00e9b\u00e2cle, 'a breaking up'", "usage": "The product launch turned into a debacle when the servers crashed within minutes."}, {"word": "Deleterious", "meaning": "Causing harm or damage", "root": "Gk. deleterios, 'noxious'", "usage": "Excessive screen time can have deleterious effects on sleep quality."}, {"word": "Demagogue", "meaning": "A political leader who exploits popular prejudices", "root": "Gk. demos, 'people' + agogos, 'leading'", "usage": "Historians warn that economic despair often creates fertile ground for a demagogue."}, {"word": "Denigrate", "meaning": "To criticize unfairly; disparage", "root": "Lat. denigrare, 'to blacken'", "usage": "He denigrated his rival's achievements at every opportunity."}, {"word": "Desiccate", "meaning": "To remove moisture thoroughly; dry out", "root": "Lat. desiccare, 'to dry up'", "usage": "The desert sun desiccated the riverbed within a single summer."}, {"word": "Diaphanous", "meaning": "Light, delicate, and translucent", "root": "Gk. dia, 'through' + phainein, 'to show'", "usage": "The dancer wore a diaphanous scarf that fluttered with every movement."}, {"word": "Didactic", "meaning": "Intended to teach, often excessively moralizing", "root": "Gk. didaskein, 'to teach'", "usage": "Critics found the film's ending too didactic, hammering its message home."}, {"word": "Diffident", "meaning": "Modest or shy due to lack of self-confidence", "root": "Lat. diffidere, 'to distrust'", "usage": "Despite his diffident manner, he gave a flawless presentation."}, {"word": "Dilatory", "meaning": "Slow to act; intended to cause delay", "root": "Lat. dilatorius, 'delaying'", "usage": "The company's dilatory response to the complaint only worsened the situation."}, {"word": "Diminutive", "meaning": "Extremely or unusually small", "root": "Lat. diminuere, 'to lessen'", "usage": "The diminutive cottage looked almost like a dollhouse from the road."}, {"word": "Disabuse", "meaning": "To free someone from a mistaken belief", "root": "Lat. dis- + abusus, 'misuse'", "usage": "The tour guide quickly disabused us of the myth about the ancient ruins."}, {"word": "Discomfit", "meaning": "To make uneasy or confused; frustrate", "root": "OF desconfire, 'to defeat'", "usage": "The unexpected question discomfited the otherwise poised candidate."}, {"word": "Discursive", "meaning": "Moving from topic to topic without order", "root": "Lat. discurrere, 'to run about'", "usage": "His discursive lecture wandered from economics to poetry within minutes."}, {"word": "Disparate", "meaning": "Essentially different in kind; not comparable", "root": "Lat. disparare, 'to separate'", "usage": "The committee struggled to reconcile such disparate opinions."}, {"word": "Dissemble", "meaning": "To disguise one's true feelings or intentions", "root": "Lat. dissimulare, 'to disguise'", "usage": "He dissembled his disappointment behind a polite smile."}, {"word": "Dissonance", "meaning": "Lack of agreement or harmony", "root": "Lat. dissonare, 'to disagree in sound'", "usage": "There was a clear cognitive dissonance between his stated values and his actions."}, {"word": "Doleful", "meaning": "Expressing sorrow; mournful", "root": "OF doel, 'grief'", "usage": "The doleful melody of the cello matched the gray afternoon."}, {"word": "Dogmatic", "meaning": "Inclined to assert opinions as unquestionably true", "root": "Gk. dogma, 'opinion, belief'", "usage": "His dogmatic insistence on one method alienated the rest of the research team."}, {"word": "Ebullient", "meaning": "Cheerful and full of energy", "root": "Lat. ebullire, 'to boil up'", "usage": "The ebullient crowd celebrated long after the final whistle."}, {"word": "Eclectic", "meaning": "Deriving ideas from a broad range of sources", "root": "Gk. eklegein, 'to pick out'", "usage": "Her eclectic taste in music ranged from baroque to underground techno."}, {"word": "Efface", "meaning": "To erase or make indistinct", "root": "Fr. effacer, 'to wipe out'", "usage": "Decades of rain had effaced the inscription on the gravestone."}, {"word": "Effrontery", "meaning": "Insolent or impertinent boldness", "root": "Lat. effrons, 'shameless'", "usage": "He had the effrontery to ask for a raise the day after being reprimanded."}, {"word": "Egregious", "meaning": "Outstandingly bad; shocking", "root": "Lat. egregius, 'distinguished' (ironically reversed)", "usage": "The referee's egregious error decided the outcome of the match."}, {"word": "Elegy", "meaning": "A poem of serious reflection, typically a lament", "root": "Gk. elegos, 'mournful poem'", "usage": "The poet wrote an elegy for his brother who died young."}, {"word": "Emollient", "meaning": "Softening; soothing", "root": "Lat. emollire, 'to soften'", "usage": "Her emollient words calmed the frightened child almost instantly."}, {"word": "Empirical", "meaning": "Based on observation or experience rather than theory", "root": "Gk. empeirikos, 'experienced'", "usage": "The scientist insisted on empirical evidence before accepting the hypothesis."}, {"word": "Endemic", "meaning": "Regularly found in a particular area or group", "root": "Gk. endemos, 'native'", "usage": "Malaria remains endemic in parts of the region despite decades of effort."}, {"word": "Ephemeral", "meaning": "Lasting for a very short time", "root": "Gk. ephemeros, 'lasting a day'", "usage": "The cherry blossoms are beautiful precisely because they are ephemeral."}, {"word": "Equanimity", "meaning": "Mental calmness in difficult situations", "root": "Lat. aequus, 'equal' + animus, 'mind'", "usage": "She received the harsh news with remarkable equanimity."}, {"word": "Equivocate", "meaning": "To use ambiguous language to avoid committing", "root": "Lat. aequus, 'equal' + vox, 'voice'", "usage": "The witness equivocated whenever asked about his whereabouts that night."}, {"word": "Ersatz", "meaning": "Made or used as a substitute; not genuine", "root": "Ger. Ersatz, 'replacement'", "usage": "During the shortage, an ersatz coffee made from chicory became common."}, {"word": "Esoteric", "meaning": "Intended for or understood by only a small group", "root": "Gk. esoterikos, 'inner'", "usage": "The seminar covered esoteric details of medieval tax law."}, {"word": "Eulogy", "meaning": "A speech praising someone, often the deceased", "root": "Gk. eu, 'good' + logos, 'word'", "usage": "His daughter delivered a moving eulogy at the funeral."}, {"word": "Euphemism", "meaning": "A mild expression substituted for a harsh one", "root": "Gk. euphemismos, 'good speech'", "usage": "'Letting someone go' is a common euphemism for firing them."}, {"word": "Exculpate", "meaning": "To show that someone is not guilty", "root": "Lat. ex- + culpa, 'blame'", "usage": "New DNA evidence exculpated the man after twenty years in prison."}, {"word": "Exigent", "meaning": "Pressing; demanding immediate attention", "root": "Lat. exigere, 'to demand'", "usage": "The nurse responded first to the most exigent cases in the ward."}, {"word": "Extant", "meaning": "Still in existence; surviving", "root": "Lat. exstare, 'to stand out'", "usage": "Only a few extant copies of the original manuscript remain."}, {"word": "Extol", "meaning": "To praise enthusiastically", "root": "Lat. extollere, 'to raise up'", "usage": "The reviewers extolled the film's unconventional cinematography."}, {"word": "Extraneous", "meaning": "Irrelevant or unnecessary to the matter at hand", "root": "Lat. extraneus, 'external'", "usage": "The editor cut every extraneous detail from the report."}, {"word": "Facetious", "meaning": "Treating serious issues with inappropriate humor", "root": "Lat. facetus, 'witty'", "usage": "His facetious remark during the meeting didn't land well with the board."}, {"word": "Fastidious", "meaning": "Very attentive to detail; hard to please", "root": "Lat. fastidium, 'disgust'", "usage": "The fastidious editor rejected the manuscript over a single misplaced comma."}, {"word": "Fatuous", "meaning": "Silly and pointless in a self-satisfied way", "root": "Lat. fatuus, 'foolish'", "usage": "The politician's fatuous comment became a viral meme within hours."}, {"word": "Fecund", "meaning": "Producing abundant offspring, growth, or results", "root": "Lat. fecundus, 'fruitful'", "usage": "The fecund soil of the delta made it ideal for agriculture."}, {"word": "Fetter", "meaning": "To restrain or restrict", "root": "OE feter, 'chain for the feet'", "usage": "Bureaucratic delays fettered the project from its very first month."}, {"word": "Fickle", "meaning": "Changeable, especially in loyalties or affections", "root": "OE ficol, 'deceitful'", "usage": "Public opinion proved fickle, shifting within a single news cycle."}, {"word": "Florid", "meaning": "Excessively elaborate or ornate", "root": "Lat. floridus, 'flowering'", "usage": "His florid prose style felt out of place in a technical manual."}, {"word": "Foment", "meaning": "To instigate or stir up trouble", "root": "Lat. fomentare, 'to apply warm compresses'", "usage": "The pamphlets were designed to foment unrest among the workers."}, {"word": "Forbearance", "meaning": "Patience and self-control; restraint", "root": "OE forberan, 'to bear, endure'", "usage": "The landlord's forbearance allowed the family extra months to pay rent."}, {"word": "Fortuitous", "meaning": "Happening by chance, especially favorably", "root": "Lat. fortuitus, 'accidental'", "usage": "Their meeting at the airport was entirely fortuitous."}, {"word": "Fractious", "meaning": "Irritable and quarrelsome", "root": "Lat. frangere, 'to break'", "usage": "The fractious committee could not agree on a single agenda item."}, {"word": "Furtive", "meaning": "Attempting to avoid notice; secretive", "root": "Lat. furtum, 'theft'", "usage": "She cast a furtive glance at her phone during the ceremony."}, {"word": "Garrulous", "meaning": "Excessively talkative, especially on trivial matters", "root": "Lat. garrire, 'to chatter'", "usage": "The garrulous cab driver talked for the entire forty-minute ride."}, {"word": "Grandiloquent", "meaning": "Pompous or extravagant in language", "root": "Lat. grandis, 'grand' + loqui, 'to speak'", "usage": "His grandiloquent toast lasted nearly twenty minutes."}, {"word": "Gregarious", "meaning": "Sociable; fond of company", "root": "Lat. grex, 'flock, herd'", "usage": "Her gregarious nature made her the center of every gathering."}, {"word": "Guileless", "meaning": "Innocent and honest; without deception", "root": "OE, from wile", "usage": "The guileless intern had no idea his idea would spark such controversy."}, {"word": "Hackneyed", "meaning": "Overused and unoriginal", "root": "From 'hackney,' a horse for hire", "usage": "The film relied on hackneyed plot twists to fill its runtime."}, {"word": "Halcyon", "meaning": "Denoting a period of peace and happiness", "root": "Gk. halkyon, 'kingfisher'", "usage": "He often reminisced about the halcyon days of his childhood summers."}, {"word": "Harangue", "meaning": "A lengthy, aggressive lecture or tirade", "root": "OF arengue, 'public speech'", "usage": "The coach delivered a harangue to the team after the sloppy first half."}, {"word": "Hegemony", "meaning": "Dominance of one group or state over others", "root": "Gk. hegemon, 'leader'", "usage": "The treaty ended a century of naval hegemony by a single empire."}, {"word": "Heterodox", "meaning": "Not conforming with accepted or orthodox standards", "root": "Gk. heteros, 'other' + doxa, 'opinion'", "usage": "Her heterodox economic theories were dismissed by the mainstream press."}, {"word": "Histrionic", "meaning": "Overly theatrical or melodramatic", "root": "Lat. histrio, 'actor'", "usage": "His histrionic reaction to the minor setback embarrassed his colleagues."}, {"word": "Iconoclast", "meaning": "One who attacks cherished beliefs or institutions", "root": "Gk. eikon, 'image' + klan, 'to break'", "usage": "The young architect became known as an iconoclast for rejecting tradition."}, {"word": "Idiosyncratic", "meaning": "Peculiar to an individual; distinctive", "root": "Gk. idios, 'own' + synkrasis, 'mixture'", "usage": "His idiosyncratic filing system made sense to no one but himself."}, {"word": "Ignominious", "meaning": "Deserving or causing public disgrace", "root": "Lat. ignominia, 'dishonor'", "usage": "The team suffered an ignominious defeat in front of the home crowd."}, {"word": "Impassive", "meaning": "Not feeling or showing emotion", "root": "Lat. in- + pati, 'to suffer'", "usage": "The judge remained impassive as the verdict was read."}, {"word": "Impecunious", "meaning": "Having little or no money", "root": "Lat. in- + pecunia, 'money'", "usage": "The impecunious student survived mostly on instant noodles."}, {"word": "Imperious", "meaning": "Assuming authority without justification; domineering", "root": "Lat. imperium, 'command'", "usage": "Her imperious tone made even senior staff uneasy."}, {"word": "Impertinent", "meaning": "Not showing proper respect; rude", "root": "Lat. in- + pertinere, 'to pertain'", "usage": "The child's impertinent question caught the ambassador off guard."}, {"word": "Impervious", "meaning": "Not allowing something to pass through; unaffected", "root": "Lat. in- + pervius, 'passable'", "usage": "He seemed impervious to criticism no matter how harsh."}, {"word": "Implacable", "meaning": "Unable to be appeased or pacified", "root": "Lat. in- + placare, 'to calm'", "usage": "The two families remained implacable enemies for generations."}, {"word": "Inchoate", "meaning": "Just begun and not yet fully formed", "root": "Lat. inchoare, 'to begin'", "usage": "The plan was still inchoate, little more than a few scribbled notes."}, {"word": "Incisive", "meaning": "Sharply perceptive and direct", "root": "Lat. incidere, 'to cut into'", "usage": "Her incisive questions exposed the flaw in his testimony."}, {"word": "Incongruous", "meaning": "Not in harmony or keeping with the surroundings", "root": "Lat. in- + congruere, 'to agree'", "usage": "The skyscraper looked incongruous among the village's thatched roofs."}, {"word": "Indefatigable", "meaning": "Persisting tirelessly", "root": "Lat. in- + de- + fatigare, 'to tire'", "usage": "The indefatigable volunteers worked through the night to rebuild the shelter."}, {"word": "Indolent", "meaning": "Wanting to avoid activity; lazy", "root": "Lat. in- + dolere, 'to feel pain'", "usage": "The indolent afternoon passed without anyone accomplishing much of anything."}, {"word": "Ineffable", "meaning": "Too great to be expressed in words", "root": "Lat. in- + effari, 'to speak out'", "usage": "The view from the summit produced an ineffable sense of awe."}, {"word": "Inexorable", "meaning": "Impossible to stop or prevent", "root": "Lat. in- + exorare, 'to move by entreaty'", "usage": "The inexorable rise of the floodwaters forced the town to evacuate."}, {"word": "Ingenuous", "meaning": "Innocent and unsuspecting; naive", "root": "Lat. ingenuus, 'freeborn, noble'", "usage": "His ingenuous belief that everyone was honest made him easy to deceive."}, {"word": "Inimical", "meaning": "Tending to obstruct or harm; hostile", "root": "Lat. inimicus, 'enemy'", "usage": "Cutting corners on safety is inimical to the company's long-term reputation."}, {"word": "Innocuous", "meaning": "Not harmful or offensive", "root": "Lat. in- + nocere, 'to harm'", "usage": "What seemed like an innocuous comment triggered an unexpected argument."}, {"word": "Insensate", "meaning": "Lacking physical sensation, or lacking sense", "root": "Lat. in- + sensus, 'sense'", "usage": "His insensate cruelty toward the animals shocked even his allies."}, {"word": "Insidious", "meaning": "Proceeding in a subtle, harmful way", "root": "Lat. insidiae, 'ambush'", "usage": "The disease progressed in an insidious manner, undetected for years."}, {"word": "Insipid", "meaning": "Lacking flavor or interest; bland", "root": "Lat. in- + sapidus, 'tasty'", "usage": "The remake felt insipid compared to the sharp wit of the original."}, {"word": "Insular", "meaning": "Ignorant of other cultures; narrow-minded", "root": "Lat. insula, 'island'", "usage": "Years of isolation had left the community somewhat insular in outlook."}, {"word": "Insuperable", "meaning": "Impossible to overcome", "root": "Lat. in- + superare, 'to surmount'", "usage": "The budget shortfall seemed like an insuperable obstacle to the project."}, {"word": "Intractable", "meaning": "Hard to control or deal with", "root": "Lat. in- + tractare, 'to handle'", "usage": "The negotiators faced an intractable dispute over water rights."}, {"word": "Intransigent", "meaning": "Unwilling to change one's views or agree", "root": "Lat. in- + transigere, 'to come to an agreement'", "usage": "The union remained intransigent despite three rounds of negotiations."}, {"word": "Inured", "meaning": "Accustomed to something unpleasant", "root": "Lat. in- + ure, 'to work, use'", "usage": "After years on the trading floor, she was inured to the chaos."}, {"word": "Invective", "meaning": "Insulting, abusive, or highly critical language", "root": "Lat. invehi, 'to attack with words'", "usage": "The columnist's invective against the mayor filled an entire page."}, {"word": "Inveigle", "meaning": "To persuade through flattery or deceit", "root": "OF aveugler, 'to blind'", "usage": "He inveigled his way into the boardroom by pretending to be an investor."}, {"word": "Irascible", "meaning": "Easily provoked to anger", "root": "Lat. irasci, 'to grow angry'", "usage": "The irascible chef was known for throwing pans when orders were late."}, {"word": "Jocular", "meaning": "Fond of joking; humorous", "root": "Lat. jocus, 'joke'", "usage": "His jocular tone lightened the mood at an otherwise tense dinner."}, {"word": "Juxtapose", "meaning": "To place side by side for contrasting effect", "root": "Lat. juxta, 'next to' + ponere, 'to place'", "usage": "The exhibit juxtaposed ancient pottery with modern sculpture."}, {"word": "Laconic", "meaning": "Using very few words; terse", "root": "Gk. Lakon, 'a Spartan'", "usage": "His laconic reply gave the reporters nothing to work with."}, {"word": "Languid", "meaning": "Lacking energy or vitality; slow", "root": "Lat. languere, 'to be weak'", "usage": "The languid afternoon heat made even walking feel like effort."}, {"word": "Largess", "meaning": "Generosity in bestowing money or gifts", "root": "Lat. largus, 'abundant'", "usage": "The scholarship fund exists thanks to the largess of a single alumnus."}, {"word": "Lassitude", "meaning": "A state of physical or mental weariness", "root": "Lat. lassus, 'weary'", "usage": "A deep lassitude settled over the crew after weeks at sea."}, {"word": "Laud", "meaning": "To praise highly", "root": "Lat. laudare, 'to praise'", "usage": "Critics lauded the debut novel for its unflinching honesty."}, {"word": "Lithe", "meaning": "Thin, supple, and graceful", "root": "OE lithe, 'gentle, mild'", "usage": "The gymnast's lithe movements made the routine look effortless."}, {"word": "Loquacious", "meaning": "Tending to talk a great deal; talkative", "root": "Lat. loqui, 'to speak'", "usage": "The loquacious tour guide never left a silence unfilled."}, {"word": "Lugubrious", "meaning": "Looking or sounding sad and dismal", "root": "Lat. lugere, 'to mourn'", "usage": "The lugubrious violin solo suited the film's final scene."}, {"word": "Maladroit", "meaning": "Ineffective or bungling; clumsy", "root": "Fr. mal, 'badly' + adroit, 'skillful'", "usage": "His maladroit attempt at diplomacy nearly ended the negotiations."}, {"word": "Malinger", "meaning": "To exaggerate illness to avoid duty", "root": "Fr. malingre, 'sickly'", "usage": "The sergeant suspected the private of malingering to skip the drill."}, {"word": "Malleable", "meaning": "Easily influenced or shaped", "root": "Lat. malleus, 'hammer'", "usage": "Young minds are often more malleable than we give them credit for."}, {"word": "Maudlin", "meaning": "Self-pityingly or tearfully sentimental", "root": "From 'Magdalene,' often depicted weeping", "usage": "After a few drinks, he grew maudlin about his college years."}, {"word": "Mendacious", "meaning": "Not telling the truth; lying", "root": "Lat. mendax, 'lying'", "usage": "The report exposed the mendacious claims made in the advertisement."}, {"word": "Mercurial", "meaning": "Subject to sudden or unpredictable changes of mood", "root": "From Mercury, the swift Roman god", "usage": "Her mercurial temperament made her both brilliant and exhausting to work with."}, {"word": "Mitigate", "meaning": "To make less severe or serious", "root": "Lat. mitigare, 'to soften'", "usage": "The company took steps to mitigate the damage from the recall."}, {"word": "Mollify", "meaning": "To appease or soothe anger", "root": "Lat. mollificare, 'to soften'", "usage": "The manager offered a refund to mollify the furious customer."}, {"word": "Morose", "meaning": "Sullen and ill-tempered", "root": "Lat. morosus, 'peevish'", "usage": "He grew morose after learning the trip had been cancelled."}, {"word": "Munificent", "meaning": "Extremely generous", "root": "Lat. munus, 'gift' + facere, 'to make'", "usage": "The munificent donation funded the entire new library wing."}, {"word": "Myopic", "meaning": "Lacking imagination or foresight; narrow-minded", "root": "Gk. myein, 'to close' + ops, 'eye'", "usage": "Critics called the policy myopic, ignoring its long-term costs."}, {"word": "Nadir", "meaning": "The lowest point of something", "root": "Ar. nazir, 'opposite'", "usage": "The team's loss marked the nadir of an already difficult season."}, {"word": "Nascent", "meaning": "Just coming into existence; beginning to develop", "root": "Lat. nasci, 'to be born'", "usage": "The nascent industry attracted investors betting on rapid growth."}, {"word": "Nebulous", "meaning": "In the form of a cloud; unclear or vague", "root": "Lat. nebula, 'mist, cloud'", "usage": "The proposal remained nebulous, lacking any concrete timeline."}, {"word": "Nefarious", "meaning": "Wicked or criminal", "root": "Lat. nefas, 'wrong, impious act'", "usage": "The film's villain hatches a nefarious plan to flood the city."}, {"word": "Neophyte", "meaning": "A person new to a subject or activity", "root": "Gk. neos, 'new' + phyton, 'planted'", "usage": "As a neophyte in the field, she was eager to learn from her mentors."}, {"word": "Obdurate", "meaning": "Stubbornly refusing to change one's opinion", "root": "Lat. obdurare, 'to harden'", "usage": "Despite the evidence, he remained obdurate in his original claim."}, {"word": "Obfuscate", "meaning": "To render obscure or unclear; confuse", "root": "Lat. obfuscare, 'to darken'", "usage": "The lengthy footnotes seemed designed to obfuscate rather than clarify."}, {"word": "Obsequious", "meaning": "Excessively eager to please or obey", "root": "Lat. obsequi, 'to comply with'", "usage": "The obsequious waiter refilled our glasses before they were half empty."}, {"word": "Obstreperous", "meaning": "Noisy and difficult to control", "root": "Lat. ob- + strepere, 'to make a noise'", "usage": "The obstreperous crowd ignored the usher's repeated requests."}, {"word": "Obviate", "meaning": "To remove a need or difficulty in advance", "root": "Lat. obviare, 'to prevent'", "usage": "Automating the process obviated the need for manual review."}, {"word": "Officious", "meaning": "Assertive in offering unwanted advice or help", "root": "Lat. officium, 'duty, service'", "usage": "The officious clerk insisted on reorganizing paperwork no one had asked him to touch."}, {"word": "Onerous", "meaning": "Involving a heavy burden; oppressive", "root": "Lat. onus, 'burden'", "usage": "The onerous tax code discouraged small business owners from expanding."}, {"word": "Opaque", "meaning": "Not able to be seen through; unclear", "root": "Lat. opacus, 'shady, dark'", "usage": "The company's finances remained opaque even to its own board."}, {"word": "Opprobrium", "meaning": "Harsh criticism or public disgrace", "root": "Lat. ob- + probrum, 'disgrace'", "usage": "The scandal brought international opprobrium upon the regime."}, {"word": "Ossify", "meaning": "To turn into bone; become rigid or fixed", "root": "Lat. os, 'bone' + facere, 'to make'", "usage": "Once flexible, the bureaucracy had ossified into an inefficient system."}, {"word": "Ostentatious", "meaning": "Characterized by vulgar or pretentious display", "root": "Lat. ostentare, 'to show off'", "usage": "The ostentatious mansion stood out awkwardly among modest cottages."}, {"word": "Palliate", "meaning": "To make less severe without removing the cause", "root": "Lat. palliare, 'to cloak'", "usage": "The medication merely palliates the symptoms rather than curing the disease."}, {"word": "Panacea", "meaning": "A solution for all problems or diseases", "root": "Gk. panakes, 'all-healing'", "usage": "Investors treated the new algorithm as a panacea for every market downturn."}, {"word": "Paragon", "meaning": "A model of excellence", "root": "It. paragone, 'touchstone'", "usage": "She was held up as a paragon of professionalism in a chaotic office."}, {"word": "Parsimonious", "meaning": "Unwilling to spend money; frugal to a fault", "root": "Lat. parcere, 'to spare'", "usage": "The parsimonious landlord refused to fix the heater even in winter."}, {"word": "Pejorative", "meaning": "Expressing contempt or disapproval", "root": "Lat. pejorare, 'to make worse'", "usage": "The term was once neutral but has since taken on a pejorative sense."}, {"word": "Pellucid", "meaning": "Translucently clear", "root": "Lat. per- + lucidus, 'clear'", "usage": "The pellucid mountain lake reflected the sky like a mirror."}, {"word": "Penchant", "meaning": "A strong or habitual liking for something", "root": "Fr. pencher, 'to lean'", "usage": "He had a penchant for collecting antique typewriters."}, {"word": "Penurious", "meaning": "Extremely poor; stingy", "root": "Lat. penuria, 'need, want'", "usage": "Years of penurious living left him unable to enjoy the fortune he later earned."}, {"word": "Perfidious", "meaning": "Deceitful and untrustworthy", "root": "Lat. perfidia, 'treachery'", "usage": "The perfidious advisor had been leaking secrets for years."}, {"word": "Perfunctory", "meaning": "Carried out with minimal effort or reflection", "root": "Lat. perfungi, 'to perform'", "usage": "The manager gave a perfunctory nod before returning to his phone."}, {"word": "Peripatetic", "meaning": "Traveling from place to place", "root": "Gk. peripatein, 'to walk about'", "usage": "The peripatetic musician had lived in a dozen countries by thirty."}, {"word": "Perspicacious", "meaning": "Having keen insight or understanding", "root": "Lat. perspicax, 'sharp-sighted'", "usage": "The perspicacious detective noticed the inconsistency no one else caught."}, {"word": "Pertinacious", "meaning": "Holding firmly to an opinion or course of action", "root": "Lat. pertinax, 'persistent'", "usage": "Her pertinacious pursuit of the grant eventually paid off."}, {"word": "Petulant", "meaning": "Childishly sulky or bad-tempered", "root": "Lat. petulans, 'impudent'", "usage": "The petulant customer demanded a refund over a minor inconvenience."}, {"word": "Phlegmatic", "meaning": "Having an unemotional, stolid disposition", "root": "Gk. phlegma, one of the four humors", "usage": "He remained phlegmatic even as the deadline loomed closer."}, {"word": "Plaintive", "meaning": "Expressing sorrow; mournful", "root": "OF plaintif, 'complaining'", "usage": "A plaintive cry echoed from somewhere deep in the forest."}, {"word": "Platitude", "meaning": "A remark that is trite or overused", "root": "Fr. plat, 'flat'", "usage": "The graduation speech was full of platitudes about following your dreams."}, {"word": "Plethora", "meaning": "An excessive amount of something", "root": "Gk. plethora, 'fullness'", "usage": "The market offers a plethora of options for budget travelers."}, {"word": "Polemical", "meaning": "Strongly critical of or opposed to something", "root": "Gk. polemikos, 'warlike'", "usage": "His polemical essay attacked nearly every economist of the previous decade."}, {"word": "Portentous", "meaning": "Of or like an omen, especially ominously", "root": "Lat. portendere, 'to foretell'", "usage": "The sudden silence of the birds felt strangely portentous."}, {"word": "Precocious", "meaning": "Having developed abilities earlier than usual", "root": "Lat. praecox, 'ripening early'", "usage": "The precocious child was reading novels by the age of five."}, {"word": "Presage", "meaning": "To be a sign of something to come", "root": "Lat. praesagire, 'to perceive beforehand'", "usage": "The dark clouds on the horizon presaged the storm to come."}, {"word": "Prevaricate", "meaning": "To speak evasively; to lie", "root": "Lat. praevaricari, 'to walk crookedly'", "usage": "The senator prevaricated for ten minutes rather than answer directly."}, {"word": "Probity", "meaning": "The quality of having strong moral principles", "root": "Lat. probus, 'good, honest'", "usage": "The auditor's reputation for probity made his findings hard to dismiss."}, {"word": "Prodigal", "meaning": "Wastefully extravagant", "root": "Lat. prodigere, 'to squander'", "usage": "The prodigal heir spent his inheritance within two reckless years."}, {"word": "Profligate", "meaning": "Recklessly extravagant or licentious", "root": "Lat. profligare, 'to ruin'", "usage": "The profligate spending nearly bankrupted the small kingdom."}, {"word": "Prolix", "meaning": "Using more words than needed; tediously long", "root": "Lat. prolixus, 'extended'", "usage": "The prolix contract took three lawyers a week to untangle."}, {"word": "Propensity", "meaning": "An inclination or natural tendency", "root": "Lat. propendere, 'to hang forward'", "usage": "He has a propensity for taking on more projects than he can finish."}, {"word": "Propitious", "meaning": "Giving a good indication of a favorable outcome", "root": "Lat. propitius, 'favorable'", "usage": "The clear skies made for a propitious start to the expedition."}, {"word": "Prosaic", "meaning": "Lacking imagination; dull, ordinary", "root": "Lat. prosa, 'straightforward speech'", "usage": "His prosaic account of the trip left out every interesting detail."}, {"word": "Proscribe", "meaning": "To forbid, especially by law", "root": "Lat. proscribere, 'to publish, denounce'", "usage": "The new charter proscribed any form of censorship."}, {"word": "Protean", "meaning": "Tending to change frequently; versatile", "root": "From Proteus, the shape-shifting sea god", "usage": "The actor's protean range let him disappear into wildly different roles."}, {"word": "Prudent", "meaning": "Acting with care and thought for the future", "root": "Lat. providens, 'foreseeing'", "usage": "It was prudent of them to save six months of expenses before quitting."}, {"word": "Puerile", "meaning": "Childishly silly and trivial", "root": "Lat. puer, 'boy'", "usage": "The comedian's puerile jokes drew groans from most of the audience."}, {"word": "Pugnacious", "meaning": "Eager or quick to argue or fight", "root": "Lat. pugnare, 'to fight'", "usage": "His pugnacious debating style won arguments but lost friends."}, {"word": "Punctilious", "meaning": "Showing great attention to detail or correct behavior", "root": "It. puntiglio, 'a fine point'", "usage": "The punctilious editor caught every stray comma in the manuscript."}, {"word": "Pusillanimous", "meaning": "Showing a lack of courage; timid", "root": "Lat. pusillus, 'very small' + animus, 'spirit'", "usage": "His pusillanimous refusal to speak up cost him the promotion."}, {"word": "Quagmire", "meaning": "A difficult, precarious situation", "root": "ME quag, 'bog' + mire", "usage": "The peace talks dissolved into a diplomatic quagmire."}, {"word": "Querulous", "meaning": "Complaining in a whining manner", "root": "Lat. queri, 'to complain'", "usage": "The querulous passenger complained about every seat he was given."}, {"word": "Quiescent", "meaning": "In a state of rest; inactive", "root": "Lat. quiescere, 'to rest'", "usage": "The volcano had remained quiescent for over two hundred years."}, {"word": "Quixotic", "meaning": "Exceedingly idealistic; unrealistic", "root": "From Don Quixote", "usage": "His quixotic plan to end poverty in a single term impressed few economists."}, {"word": "Rancor", "meaning": "Bitterness or resentfulness", "root": "Lat. rancor, 'rancidness'", "usage": "Years after the divorce, the rancor between them had barely faded."}, {"word": "Recalcitrant", "meaning": "Having an obstinately uncooperative attitude", "root": "Lat. recalcitrare, 'to kick back'", "usage": "The recalcitrant donkey refused to move another step."}, {"word": "Recondite", "meaning": "Little known; abstruse", "root": "Lat. recondere, 'to hide away'", "usage": "The lecture delved into recondite corners of medieval philosophy."}, {"word": "Recrudescence", "meaning": "The recurrence of an undesirable condition", "root": "Lat. recrudescere, 'to become raw again'", "usage": "Health officials feared a recrudescence of the outbreak in the fall."}, {"word": "Redolent", "meaning": "Strongly reminiscent or suggestive of something", "root": "Lat. redolere, 'to emit a scent'", "usage": "The old bookstore was redolent of leather and dust."}, {"word": "Refulgent", "meaning": "Shining brightly; radiant", "root": "Lat. refulgere, 'to shine brightly'", "usage": "The refulgent sunset painted the entire bay in gold."}, {"word": "Relegate", "meaning": "To assign to an inferior rank or position", "root": "Lat. relegare, 'to send away'", "usage": "The once-starting quarterback was relegated to the bench."}, {"word": "Reprobate", "meaning": "An unprincipled person", "root": "Lat. reprobare, 'to reject'", "usage": "The old reprobate had cheated at cards in every town along the river."}, {"word": "Repudiate", "meaning": "To refuse to accept or be associated with", "root": "Lat. repudiare, 'to reject'", "usage": "He publicly repudiated the extremist views attributed to him."}, {"word": "Rescind", "meaning": "To revoke, cancel, or repeal", "root": "Lat. rescindere, 'to cut off'", "usage": "The university rescinded the offer after discovering the plagiarism."}, {"word": "Resplendent", "meaning": "Attractive and impressive through splendor", "root": "Lat. resplendere, 'to shine brightly'", "usage": "The cathedral was resplendent in the late afternoon light."}, {"word": "Reticent", "meaning": "Not revealing one's thoughts or feelings readily", "root": "Lat. reticere, 'to keep silent'", "usage": "He remained reticent about his plans even to close friends."}, {"word": "Rife", "meaning": "Widespread, especially of something undesirable", "root": "OE ryfe", "usage": "Rumors were rife in the office after the sudden resignation."}, {"word": "Ruminate", "meaning": "To think deeply about something", "root": "Lat. ruminari, 'to chew the cud'", "usage": "She spent the train ride ruminating over the interview's tougher questions."}, {"word": "Sagacious", "meaning": "Having keen mental discernment; wise", "root": "Lat. sagax, 'wise, shrewd'", "usage": "The sagacious old merchant never fell for the same trick twice."}, {"word": "Salient", "meaning": "Most noticeable or important", "root": "Lat. salire, 'to leap'", "usage": "The report's most salient finding was buried on the final page."}, {"word": "Sanctimonious", "meaning": "Making a show of being morally superior", "root": "Lat. sanctus, 'holy'", "usage": "His sanctimonious lecture on honesty rang hollow given his own record."}, {"word": "Sardonic", "meaning": "Grimly mocking or cynical", "root": "Gk. sardonios, possibly from a Sardinian plant", "usage": "He gave a sardonic smile before dismantling the argument entirely."}, {"word": "Satiate", "meaning": "To satisfy fully; gratify to the full", "root": "Lat. satiare, 'to fill'", "usage": "No amount of praise seemed to satiate his need for approval."}, {"word": "Saturnine", "meaning": "Slow and gloomy in temperament", "root": "From Saturn, associated with melancholy", "usage": "His saturnine expression rarely changed, even at celebrations."}, {"word": "Sedulous", "meaning": "Showing dedication and diligence", "root": "Lat. sedulus, 'zealous'", "usage": "Her sedulous attention to the accounts caught the discrepancy immediately."}, {"word": "Sequester", "meaning": "To isolate or hide away", "root": "Lat. sequestrare, 'to give up for safekeeping'", "usage": "The jury was sequestered for the duration of the trial."}, {"word": "Servile", "meaning": "Excessively submissive or obedient", "root": "Lat. servus, 'slave'", "usage": "His servile flattery of the board did not go unnoticed."}, {"word": "Solicitous", "meaning": "Characterized by great concern or care", "root": "Lat. sollicitus, 'anxious'", "usage": "The host was almost overly solicitous, checking on us every few minutes."}, {"word": "Solipsistic", "meaning": "Concerned only with one's own experiences", "root": "Lat. solus, 'alone' + ipse, 'self'", "usage": "The memoir's solipsistic focus left little room for other perspectives."}, {"word": "Somnolent", "meaning": "Sleepy or drowsy", "root": "Lat. somnus, 'sleep'", "usage": "The warm classroom and monotone lecture made everyone somnolent."}, {"word": "Spurious", "meaning": "Not being what it purports to be; false", "root": "Lat. spurius, 'illegitimate'", "usage": "The study's spurious correlation was quickly debunked by other researchers."}, {"word": "Stolid", "meaning": "Calm, dependable, and showing little emotion", "root": "Lat. stolidus, 'dull, slow'", "usage": "The stolid guard didn't react even as the crowd grew louder."}, {"word": "Strident", "meaning": "Loud and harsh; grating", "root": "Lat. stridere, 'to creak, grate'", "usage": "His strident tone made the negotiation harder than it needed to be."}, {"word": "Subterfuge", "meaning": "Deceit used to achieve a goal", "root": "Lat. subterfugere, 'to escape secretly'", "usage": "The heist relied on subterfuge rather than force."}, {"word": "Supercilious", "meaning": "Behaving as though superior to others", "root": "Lat. supercilium, 'eyebrow'", "usage": "The supercilious critic dismissed the entire genre in a single sentence."}, {"word": "Surfeit", "meaning": "An excessive amount of something", "root": "OF surfaire, 'to overdo'", "usage": "A surfeit of applicants made the selection process brutally competitive."}, {"word": "Surreptitious", "meaning": "Kept secret because it would not be approved of", "root": "Lat. surripere, 'to seize secretly'", "usage": "He took a surreptitious glance at his notes during the oral exam."}, {"word": "Sycophant", "meaning": "A person who flatters to gain advantage", "root": "Gk. sykophantes, 'informer'", "usage": "The court was full of sycophants eager to agree with the king."}, {"word": "Taciturn", "meaning": "Reserved or uncommunicative in speech", "root": "Lat. tacitus, 'silent'", "usage": "The taciturn farmer answered every question with a single word."}, {"word": "Tenacious", "meaning": "Persistent in maintaining or achieving something", "root": "Lat. tenax, 'holding fast'", "usage": "Her tenacious pursuit of the story eventually broke the case open."}, {"word": "Tenuous", "meaning": "Very weak or slight", "root": "Lat. tenuis, 'thin'", "usage": "The prosecution's case rested on a tenuous chain of circumstantial evidence."}, {"word": "Timorous", "meaning": "Showing timidity or fearfulness", "root": "Lat. timor, 'fear'", "usage": "The timorous new hire barely spoke during his first team meeting."}, {"word": "Torpid", "meaning": "Mentally or physically inactive; lethargic", "root": "Lat. torpere, 'to be numb'", "usage": "The heat left the whole town feeling torpid by midafternoon."}, {"word": "Tractable", "meaning": "Easily controlled or managed", "root": "Lat. tractare, 'to handle'", "usage": "Unlike his predecessor, the new intern proved tractable and eager to learn."}, {"word": "Transient", "meaning": "Lasting only for a short time", "root": "Lat. transire, 'to go across'", "usage": "The pop-up shop was only ever meant to be a transient venture."}, {"word": "Trenchant", "meaning": "Vigorous and incisive in expression", "root": "Lat. truncare, 'to cut off'", "usage": "Her trenchant critique dismantled the study's central claim."}, {"word": "Truculent", "meaning": "Eager or quick to argue; fierce", "root": "Lat. truculentus, 'fierce'", "usage": "The truculent client threatened to sue over the smallest delay."}, {"word": "Turgid", "meaning": "Swollen and distended, or pompous in language", "root": "Lat. turgere, 'to swell'", "usage": "The turgid prose of the report made it nearly unreadable."}, {"word": "Ubiquitous", "meaning": "Present, appearing, or found everywhere", "root": "Lat. ubique, 'everywhere'", "usage": "Smartphones have become ubiquitous even in remote villages."}, {"word": "Umbrage", "meaning": "Offense or annoyance", "root": "Lat. umbra, 'shadow'", "usage": "She took umbrage at the suggestion that her work was careless."}, {"word": "Unctuous", "meaning": "Excessively flattering or ingratiating", "root": "Lat. unguere, 'to anoint'", "usage": "The salesman's unctuous manner made customers instantly suspicious."}, {"word": "Untenable", "meaning": "Not able to be maintained or defended", "root": "Fr. tenable, 'holdable'", "usage": "The professor's theory became untenable after the new data emerged."}, {"word": "Vacillate", "meaning": "To waver between different opinions or actions", "root": "Lat. vacillare, 'to sway'", "usage": "The board vacillated for months before finally approving the merger."}, {"word": "Vacuous", "meaning": "Having or showing a lack of thought; empty", "root": "Lat. vacuus, 'empty'", "usage": "The vacuous small talk at the reception left her exhausted."}, {"word": "Vapid", "meaning": "Offering nothing that is stimulating; dull", "root": "Lat. vapidus, 'flat, spiritless'", "usage": "The sequel's vapid dialogue disappointed fans of the original."}, {"word": "Venal", "meaning": "Susceptible to bribery; corruptible", "root": "Lat. venalis, 'for sale'", "usage": "The venal customs officer accepted bribes without hesitation."}, {"word": "Veracity", "meaning": "Conformity to facts; accuracy", "root": "Lat. verax, 'truthful'", "usage": "The reporter's veracity was questioned after the sources went unverified."}, {"word": "Verbose", "meaning": "Using more words than needed", "root": "Lat. verbosus, 'wordy'", "usage": "The verbose instructions took three pages to say what could fit on one."}, {"word": "Vestige", "meaning": "A trace or remnant of something that once existed", "root": "Lat. vestigium, 'footprint'", "usage": "A few crumbling walls were the only vestige of the ancient temple."}, {"word": "Vex", "meaning": "To make someone annoyed or worried", "root": "Lat. vexare, 'to shake, disturb'", "usage": "The unresolved question continued to vex the research team."}, {"word": "Vicarious", "meaning": "Experienced through the feelings of another", "root": "Lat. vicarius, 'substitute'", "usage": "He took vicarious pleasure in watching his daughter succeed where he had failed."}, {"word": "Vilify", "meaning": "To speak or write about in an abusive manner", "root": "Lat. vilis, 'cheap, base'", "usage": "The tabloids vilified the actress long before the facts were known."}, {"word": "Vindicate", "meaning": "To clear from blame; justify", "root": "Lat. vindicare, 'to claim, avenge'", "usage": "The new evidence finally vindicated the man after decades of suspicion."}, {"word": "Vitiate", "meaning": "To spoil or impair the quality of", "root": "Lat. vitiare, 'to corrupt'", "usage": "A single procedural error vitiated the entire contract."}, {"word": "Vituperative", "meaning": "Bitter and abusive", "root": "Lat. vituperare, 'to blame'", "usage": "The vituperative email exchange was later leaked to the press."}, {"word": "Volatile", "meaning": "Liable to change rapidly and unpredictably", "root": "Lat. volare, 'to fly'", "usage": "The volatile stock swung ten percent within a single trading session."}, {"word": "Voracious", "meaning": "Wanting or devouring great quantities", "root": "Lat. vorare, 'to devour'", "usage": "Her voracious appetite for novels meant a new book every week."}, {"word": "Winsome", "meaning": "Attractive or appealing in a charming way", "root": "OE wynsum, 'pleasant'", "usage": "The winsome puppy in the window drew a crowd within minutes."}, {"word": "Zealot", "meaning": "A person fanatically committed to a cause", "root": "Gk. zelotes, 'zealous one'", "usage": "The reform movement was led by a small group of zealots."}, {"word": "Abjure", "meaning": "To renounce solemnly", "root": "Lat. abjurare, 'to deny on oath'", "usage": "He publicly abjured the extremist ideology he once championed."}, {"word": "Abnegation", "meaning": "The act of renouncing or rejecting something", "root": "Lat. abnegare, 'to refuse'", "usage": "Her self-abnegation meant giving up the promotion to care for her mother."}, {"word": "Accretion", "meaning": "Growth or increase by gradual accumulation", "root": "Lat. accrescere, 'to grow'", "usage": "The reef formed through centuries of coral accretion."}, {"word": "Acrimony", "meaning": "Bitterness or ill feeling", "root": "Lat. acrimonia, 'sharpness'", "usage": "The acrimony between the partners eventually dissolved the firm."}, {"word": "Adjudicate", "meaning": "To make a formal judgment on a dispute", "root": "Lat. adjudicare, 'to award judicially'", "usage": "An independent panel was brought in to adjudicate the wage dispute."}, {"word": "Admonish", "meaning": "To warn or reprimand firmly", "root": "Lat. admonere, 'to advise'", "usage": "The referee admonished both players before issuing a formal warning."}, {"word": "Aggrandize", "meaning": "To increase the power, status, or wealth of", "root": "Fr. agrandir, 'to enlarge'", "usage": "The memoir seemed less an account of history than an attempt to self-aggrandize."}, {"word": "Alacritous", "meaning": "Showing brisk and cheerful readiness", "root": "Lat. alacer, 'lively'", "usage": "She gave an alacritous 'yes' before he'd even finished the invitation."}, {"word": "Ameliorative", "meaning": "Tending to make a bad situation better", "root": "Lat. melior, 'better'", "usage": "The reforms were ameliorative but did not solve the underlying crisis."}, {"word": "Amenable", "meaning": "Open and responsive to suggestion", "root": "Lat. minare, 'to drive (animals)'", "usage": "The client proved amenable to nearly every change we proposed."}, {"word": "Anachronistic", "meaning": "Belonging to a period other than the one portrayed", "root": "Gk. ana, 'against' + chronos, 'time'", "usage": "The film's anachronistic soundtrack undercut its historical setting."}, {"word": "Apathetic", "meaning": "Showing little emotion or interest", "root": "Gk. a-, 'without' + pathos, 'feeling'", "usage": "Voter turnout dropped as the electorate grew increasingly apathetic."}, {"word": "Approbative", "meaning": "Expressing approval", "root": "Lat. approbare, 'to approve'", "usage": "The committee's approbative nod cleared the way for the new curriculum."}, {"word": "Arbiter", "meaning": "A person who settles a dispute", "root": "Lat. arbiter, 'judge'", "usage": "The critic had long been considered the arbiter of taste in the art world."}, {"word": "Ardor", "meaning": "Enthusiasm or passion", "root": "Lat. ardere, 'to burn'", "usage": "Her ardor for the cause never diminished despite years of setbacks."}, {"word": "Askance", "meaning": "With a side glance; with suspicion", "root": "Origin uncertain, possibly It.", "usage": "The board looked askance at the CEO's sudden change in strategy."}, {"word": "Aspersion", "meaning": "An attack on someone's reputation", "root": "Lat. aspergere, 'to sprinkle'", "usage": "He cast aspersions on his rival's character rather than debate the policy."}, {"word": "Assuage", "meaning": "To make an unpleasant feeling less intense", "root": "Lat. suavis, 'sweet'", "usage": "Nothing he said could assuage her fear of flying."}, {"word": "Avow", "meaning": "To assert or confess openly", "root": "Lat. advocare, 'to call upon'", "usage": "He avowed his innocence in every interview he gave."}, {"word": "Belabor", "meaning": "To argue or explain at excessive length", "root": "ME laboren, 'to labor'", "usage": "The lawyer belabored a minor point until the jury lost interest."}, {"word": "Bereft", "meaning": "Deprived of or lacking something", "root": "OE bereafian, 'to deprive'", "usage": "After the layoffs, the office felt bereft of its usual energy."}, {"word": "Blandish", "meaning": "To coax with flattery", "root": "Lat. blandiri, 'to flatter'", "usage": "The lobbyist tried to blandish the committee into a favorable vote."}, {"word": "Brazen", "meaning": "Bold and without shame", "root": "OE braesen, 'made of brass'", "usage": "It was a brazen act of theft, committed in broad daylight."}, {"word": "Bristle", "meaning": "To show sudden anger or irritation", "root": "OE byrst, 'bristle'", "usage": "She bristled at the suggestion that her results were unreliable."}, {"word": "Burgeon", "meaning": "To begin to grow rapidly", "root": "OF burjon, 'a bud'", "usage": "The startup's user base burgeoned after the app went viral."}, {"word": "Buttress", "meaning": "To support or strengthen", "root": "OF bouterez, 'a thrust'", "usage": "New data buttressed the researcher's original hypothesis."}, {"word": "Cadence", "meaning": "A rhythmic sequence or flow", "root": "Lat. cadere, 'to fall'", "usage": "The speaker's steady cadence kept the audience engaged for an hour."}, {"word": "Calumny", "meaning": "The making of false statements to damage reputation", "root": "Lat. calumnia, 'false accusation'", "usage": "The senator dismissed the allegations as pure calumny."}, {"word": "Canard", "meaning": "An unfounded rumor or story", "root": "Fr. canard, 'duck'", "usage": "The claim was a canard that had been debunked years earlier."}, {"word": "Candor", "meaning": "The quality of being open and honest", "root": "Lat. candor, 'whiteness, purity'", "usage": "Her candor about the company's struggles surprised the shareholders."}, {"word": "Capitulate", "meaning": "To cease resistance; surrender", "root": "Lat. capitulum, 'chapter, terms'", "usage": "After a month-long siege, the garrison finally capitulated."}, {"word": "Captious", "meaning": "Tending to find fault; overly critical", "root": "Lat. captiosus, 'insidious'", "usage": "His captious remarks about the seating chart annoyed the hosts."}, {"word": "Censure", "meaning": "Strong criticism or disapproval", "root": "Lat. censere, 'to assess'", "usage": "The board voted to censure the director for the mishandled funds."}, {"word": "Chary", "meaning": "Cautious about incurring risk; wary", "root": "OE cearig, 'sorrowful, careful'", "usage": "Investors grew chary after the second quarterly loss."}, {"word": "Chastise", "meaning": "To rebuke or reprimand severely", "root": "Lat. castigare, 'to correct'", "usage": "The teacher chastised the class for the noise in the hallway."}, {"word": "Circumspect", "meaning": "Wary and unwilling to take risks", "root": "Lat. circumspicere, 'to look around'", "usage": "Given the market's volatility, the fund manager remained circumspect."}, {"word": "Cognizant", "meaning": "Having knowledge or awareness", "root": "Lat. cognoscere, 'to know'", "usage": "The staff were fully cognizant of the risks before the expedition began."}, {"word": "Commensurate", "meaning": "Corresponding in size or degree", "root": "Lat. commensurare, 'to measure together'", "usage": "Her salary was not commensurate with her years of experience."}, {"word": "Complaisant", "meaning": "Willing to please others; obliging", "root": "Lat. complacere, 'to please greatly'", "usage": "The complaisant assistant rarely questioned even unreasonable requests."}, {"word": "Compunction", "meaning": "A feeling of guilt or moral misgiving", "root": "Lat. compungere, 'to prick sharply'", "usage": "He showed no compunction about breaking the promise."}, {"word": "Concomitant", "meaning": "Naturally accompanying or associated with", "root": "Lat. concomitari, 'to accompany'", "usage": "Rapid growth brought concomitant strain on the city's infrastructure."}, {"word": "Condone", "meaning": "To accept behavior that is considered wrong", "root": "Lat. condonare, 'to forgive'", "usage": "The coach made clear he would not condone any form of cheating."}, {"word": "Conflagration", "meaning": "An extensive fire that destroys much", "root": "Lat. conflagrare, 'to burn up'", "usage": "The conflagration spread through three city blocks before dawn."}, {"word": "Connive", "meaning": "To secretly cooperate in wrongdoing", "root": "Lat. connivere, 'to shut the eyes'", "usage": "The two clerks connived to skim funds from petty cash for years."}, {"word": "Consternation", "meaning": "A feeling of anxiety or dismay", "root": "Lat. consternare, 'to throw into confusion'", "usage": "The sudden resignation caused consternation among the shareholders."}, {"word": "Corroborate", "meaning": "To confirm or give support to a statement", "root": "Lat. corroborare, 'to strengthen'", "usage": "Three independent witnesses corroborated the driver's account."}, {"word": "Countenance", "meaning": "To tolerate or approve of", "root": "Lat. continentia, 'restraint, bearing'", "usage": "The principal refused to countenance any form of bullying."}, {"word": "Credulous", "meaning": "Too ready to believe things; gullible", "root": "Lat. credere, 'to believe'", "usage": "The credulous investors handed over savings based on nothing but a rumor."}, {"word": "Cupidity", "meaning": "Greed for money or possessions", "root": "Lat. cupiditas, 'desire'", "usage": "Sheer cupidity drove the executives to falsify the earnings report."}, {"word": "Decorum", "meaning": "Behavior in good taste; propriety", "root": "Lat. decorus, 'fitting, proper'", "usage": "Even under pressure, the ambassador maintained perfect decorum."}, {"word": "Defamatory", "meaning": "Damaging the reputation of someone", "root": "Lat. diffamare, 'to spread abroad'", "usage": "The magazine retracted the defamatory article and issued an apology."}, {"word": "Deference", "meaning": "Humble submission and respect", "root": "Lat. deferre, 'to bring down, submit'", "usage": "The junior associate treated the senior partner with visible deference."}, {"word": "Deleteriously", "meaning": "In a way that causes harm", "root": "Gk. deleterios, 'noxious'", "usage": "The chemical spill deleteriously affected the local fish population."}, {"word": "Deride", "meaning": "To express contempt for; ridicule", "root": "Lat. deridere, 'to laugh at'", "usage": "Critics derided the proposal as unworkable from the outset."}, {"word": "Desultory", "meaning": "Lacking a plan or purpose; disconnected", "root": "Lat. desultorius, 'jumping about'", "usage": "Their desultory conversation drifted from topic to topic without landing anywhere."}, {"word": "Diatribe", "meaning": "A forceful and bitter verbal attack", "root": "Gk. diatribe, 'wasting of time, discourse'", "usage": "His diatribe against the new policy lasted the entire meeting."}, {"word": "Diffuse", "meaning": "Spread out over a large area; not concentrated", "root": "Lat. diffundere, 'to pour out'", "usage": "The essay's argument felt too diffuse to land any single point."}, {"word": "Disaffected", "meaning": "Dissatisfied with those in authority; rebellious", "root": "Lat. dis- + affectus, 'disposed'", "usage": "The strike drew support from a growing pool of disaffected workers."}, {"word": "Discern", "meaning": "To perceive or recognize something", "root": "Lat. discernere, 'to separate, distinguish'", "usage": "It was difficult to discern any real change in the company's practices."}, {"word": "Disparage", "meaning": "To regard or describe as being of little worth", "root": "OF, 'to marry below one's rank'", "usage": "He tended to disparage any idea that wasn't his own."}, {"word": "Dissipate", "meaning": "To disperse or scatter; squander", "root": "Lat. dissipare, 'to scatter'", "usage": "The tension in the room slowly dissipated as the meeting wore on."}, {"word": "Dissuade", "meaning": "To persuade someone not to do something", "root": "Lat. dissuadere, 'to advise against'", "usage": "Nothing could dissuade her from attempting the solo climb."}, {"word": "Dubious", "meaning": "Hesitating or doubting; questionable", "root": "Lat. dubius, 'doubtful'", "usage": "The claims in the ad were dubious at best."}, {"word": "Duplicity", "meaning": "Deceitfulness; double-dealing", "root": "Lat. duplex, 'twofold'", "usage": "The scandal revealed years of duplicity at the highest levels of the firm."}, {"word": "Edify", "meaning": "To instruct or improve morally or intellectually", "root": "Lat. aedificare, 'to build'", "usage": "The lecture series was meant to edify, not merely entertain."}, {"word": "Effusive", "meaning": "Expressing feelings in an unrestrained manner", "root": "Lat. effundere, 'to pour out'", "usage": "Her effusive thanks embarrassed the shy volunteer."}, {"word": "Elucidate", "meaning": "To make something clear; explain", "root": "Lat. elucidare, 'to make light'", "usage": "The professor took extra time to elucidate the proof's trickiest step."}, {"word": "Emaciated", "meaning": "Abnormally thin from lack of nutrition", "root": "Lat. emaciare, 'to make thin'", "usage": "The rescued dog was emaciated after weeks without food."}, {"word": "Embellish", "meaning": "To make more attractive by adding detail", "root": "OF bel, 'beautiful'", "usage": "He tended to embellish his stories with details that never quite happened."}, {"word": "Emulate", "meaning": "To match or surpass by imitation", "root": "Lat. aemulari, 'to rival'", "usage": "The startup hoped to emulate the success of its larger competitor."}, {"word": "Enervate", "meaning": "To cause someone to feel drained of energy", "root": "Lat. enervare, 'to weaken'", "usage": "The oppressive heat enervated even the most determined hikers."}, {"word": "Enigmatic", "meaning": "Difficult to interpret or understand; mysterious", "root": "Gk. ainigma, 'riddle'", "usage": "The artist remained an enigmatic figure who rarely gave interviews."}, {"word": "Ephemera", "meaning": "Items designed to be useful for a short time", "root": "Gk. ephemeros, 'lasting a day'", "usage": "The museum's collection of ephemera included old tickets and pamphlets."}, {"word": "Equitable", "meaning": "Fair and impartial", "root": "Lat. aequus, 'equal'", "usage": "The mediator sought an equitable division of the estate."}, {"word": "Erudite", "meaning": "Having or showing great knowledge", "root": "Lat. erudire, 'to instruct'", "usage": "Her erudite footnotes revealed years of careful research."}, {"word": "Estrange", "meaning": "To cause someone to become unfriendly or hostile", "root": "Lat. extraneus, 'foreign'", "usage": "The inheritance dispute estranged the two brothers for a decade."}, {"word": "Evanescent", "meaning": "Soon passing out of sight; fleeting", "root": "Lat. evanescere, 'to vanish'", "usage": "The evanescent glow of fireflies lasted only a few weeks each summer."}, {"word": "Exacerbate", "meaning": "To make a problem worse", "root": "Lat. exacerbare, 'to irritate'", "usage": "The delayed response only exacerbated the public's distrust."}, {"word": "Excoriate", "meaning": "To criticize severely", "root": "Lat. excoriare, 'to strip the skin off'", "usage": "The editorial excoriated the mayor for the mishandled budget."}, {"word": "Exhort", "meaning": "To strongly encourage or urge someone", "root": "Lat. exhortari, 'to encourage'", "usage": "The coach exhorted the team to give one final push before the whistle."}, {"word": "Exonerate", "meaning": "To absolve someone from blame", "root": "Lat. exonerare, 'to unburden'", "usage": "New forensic evidence exonerated the man after fifteen years."}, {"word": "Expedient", "meaning": "Convenient and practical, though possibly improper", "root": "Lat. expedire, 'to make ready'", "usage": "Cutting the safety review seemed expedient but proved disastrous."}, {"word": "Explicate", "meaning": "To analyze and develop an idea in detail", "root": "Lat. explicare, 'to unfold'", "usage": "The seminar was devoted entirely to explicating a single dense poem."}, {"word": "Extirpate", "meaning": "To root out and destroy completely", "root": "Lat. extirpare, 'to root out'", "usage": "The campaign aimed to extirpate the invasive species from the island."}, {"word": "Fallacious", "meaning": "Based on a mistaken belief; misleading", "root": "Lat. fallax, 'deceptive'", "usage": "The ad relied on a fallacious comparison to a much more expensive product."}, {"word": "Fastidiousness", "meaning": "Excessive attention to detail or accuracy", "root": "Lat. fastidium, 'disgust'", "usage": "His fastidiousness about grammar made him a difficult editor to please."}, {"word": "Fervent", "meaning": "Having or displaying passionate intensity", "root": "Lat. fervere, 'to boil'", "usage": "She remained a fervent advocate for the reform until her final days."}, {"word": "Flout", "meaning": "To openly disregard a rule or law", "root": "ME flowten, 'to play the flute, mock'", "usage": "The factory flouted every environmental regulation for a decade."}, {"word": "Fortitude", "meaning": "Courage in pain or adversity", "root": "Lat. fortitudo, 'strength'", "usage": "She faced the diagnosis with remarkable fortitude."}, {"word": "Fulminate", "meaning": "To criticize loudly or violently", "root": "Lat. fulminare, 'to strike with lightning'", "usage": "The columnist fulminated against the decision for three straight weeks."}, {"word": "Gainsay", "meaning": "To deny or contradict", "root": "OE gegn, 'against' + sayen, 'to say'", "usage": "No one dared gainsay the founder's decision in the early meetings."}, {"word": "Gambit", "meaning": "An action calculated to gain an advantage", "root": "It. gambetto, 'a tripping'", "usage": "The merger was a bold gambit that could have bankrupted the firm."}, {"word": "Gauche", "meaning": "Lacking social grace; awkward", "root": "Fr. gauche, 'left, clumsy'", "usage": "His gauche remark at dinner made the whole table uncomfortable."}, {"word": "Germane", "meaning": "Relevant to a subject under consideration", "root": "Lat. germanus, 'closely related'", "usage": "The witness was asked to keep her answers germane to the case."}, {"word": "Glib", "meaning": "Fluent but insincere or superficial", "root": "Ger. glibberig, 'slippery'", "usage": "His glib answers avoided every hard question the reporters asked."}, {"word": "Grievous", "meaning": "Very severe or serious", "root": "OF grever, 'to burden'", "usage": "The company suffered grievous losses after the factory fire."}, {"word": "Guile", "meaning": "Sly or cunning intelligence", "root": "OF guile, 'deceit'", "usage": "It took real guile to negotiate the deal without revealing the deadline."}, {"word": "Hapless", "meaning": "Unfortunate; unlucky", "root": "ON happ, 'luck' + -less", "usage": "The hapless intern managed to lock himself out three times in one week."}, {"word": "Heedless", "meaning": "Showing a reckless lack of care or attention", "root": "OE hedan, 'to heed'", "usage": "He drove on, heedless of the storm warnings on the radio."}, {"word": "Hoary", "meaning": "Grayish white; old and trite", "root": "OE har, 'gray-haired'", "usage": "The professor repeated the same hoary joke every semester."}, {"word": "Hyperbole", "meaning": "Exaggerated statements not meant to be taken literally", "root": "Gk. hyperbole, 'excess'", "usage": "Calling the delay 'the worst thing that ever happened' was pure hyperbole."}, {"word": "Iconoclastic", "meaning": "Attacking cherished beliefs or institutions", "root": "Gk. eikon, 'image' + klan, 'to break'", "usage": "Her iconoclastic paintings challenged every convention of the era."}, {"word": "Ignoble", "meaning": "Not honorable in character or purpose", "root": "Lat. in- + nobilis, 'noble'", "usage": "He met an ignoble end, forgotten and disgraced."}, {"word": "Immutable", "meaning": "Unchanging over time; unable to be changed", "root": "Lat. in- + mutare, 'to change'", "usage": "The laws of physics are, as far as we know, immutable."}, {"word": "Impecuniosity", "meaning": "The state of having little or no money", "root": "Lat. in- + pecunia, 'money'", "usage": "His impecuniosity forced him to sell the family library."}, {"word": "Impetuous", "meaning": "Acting quickly without thought", "root": "Lat. impetus, 'attack, force'", "usage": "His impetuous decision to quit cost him a stable career."}, {"word": "Impinge", "meaning": "To have an effect or impact", "root": "Lat. impingere, 'to drive into'", "usage": "The new highway will impinge on the wetland's protected border."}, {"word": "Implicit", "meaning": "Suggested though not directly expressed", "root": "Lat. implicare, 'to entangle, involve'", "usage": "There was an implicit understanding that no one would speak of the incident."}, {"word": "Imprecation", "meaning": "A spoken curse", "root": "Lat. imprecari, 'to invoke evil upon'", "usage": "He muttered an imprecation as the car sped away."}, {"word": "Impropriety", "meaning": "Failure to conform to accepted standards", "root": "Lat. improprius, 'not proper'", "usage": "The board investigated allegations of financial impropriety."}, {"word": "Impugn", "meaning": "To dispute the truth or integrity of", "root": "Lat. impugnare, 'to attack'", "usage": "The defense attorney tried to impugn the credibility of the main witness."}, {"word": "Inadvertent", "meaning": "Not resulting from careful thought; unintentional", "root": "Lat. in- + advertere, 'to turn toward'", "usage": "The leak turned out to be an inadvertent result of a software update."}, {"word": "Incendiary", "meaning": "Tending to stir up conflict; inflammatory", "root": "Lat. incendere, 'to set on fire'", "usage": "His incendiary comments at the rally drew immediate backlash."}, {"word": "Incontrovertible", "meaning": "Not able to be denied or disputed", "root": "Lat. in- + controvertere, 'to dispute'", "usage": "The video provided incontrovertible proof of the collision's cause."}, {"word": "Indigent", "meaning": "Poor; needy", "root": "Lat. indigere, 'to lack'", "usage": "The clinic offers free care to indigent patients in the region."}, {"word": "Indolence", "meaning": "Avoidance of activity or exertion; laziness", "root": "Lat. in- + dolere, 'to suffer'", "usage": "Years of indolence had left the estate's gardens completely overgrown."}, {"word": "Ineluctable", "meaning": "Unable to be resisted or avoided", "root": "Lat. in- + eluctari, 'to struggle out'", "usage": "Retirement felt like an ineluctable fact he had spent years avoiding."}, {"word": "Inept", "meaning": "Having or showing no skill; clumsy", "root": "Lat. ineptus, 'unsuitable'", "usage": "His inept handling of the crisis cost him the board's confidence."}, {"word": "Inevitable", "meaning": "Certain to happen; unavoidable", "root": "Lat. in- + evitare, 'to avoid'", "usage": "Given the debt load, the company's collapse felt inevitable."}, {"word": "Infelicitous", "meaning": "Unfortunate or inappropriate in effect", "root": "Lat. in- + felix, 'happy, fortunate'", "usage": "His infelicitous choice of words turned a toast into an insult."}, {"word": "Ingratiate", "meaning": "To bring oneself into favor by flattering others", "root": "Lat. gratia, 'favor'", "usage": "The new associate tried hard to ingratiate himself with the partners."}, {"word": "Inordinate", "meaning": "Unusually large; excessive", "root": "Lat. in- + ordinare, 'to arrange'", "usage": "The renovation took an inordinate amount of time and money."}, {"word": "Insatiable", "meaning": "Impossible to satisfy", "root": "Lat. in- + satiare, 'to fill'", "usage": "His insatiable curiosity led him into a dozen unrelated fields."}, {"word": "Instigate", "meaning": "To bring about or initiate an action", "root": "Lat. instigare, 'to urge on'", "usage": "Investigators believe a rival gang instigated the confrontation."}, {"word": "Interminable", "meaning": "Endless, or apparently endless", "root": "Lat. in- + terminare, 'to end'", "usage": "The interminable meeting dragged on for nearly four hours."}, {"word": "Intrepid", "meaning": "Fearless; adventurous", "root": "Lat. in- + trepidus, 'alarmed'", "usage": "The intrepid explorers pressed on despite the failing equipment."}, {"word": "Inundate", "meaning": "To overwhelm with things or people to deal with", "root": "Lat. inundare, 'to flood'", "usage": "The office was inundated with complaints after the price hike."}, {"word": "Invidious", "meaning": "Likely to arouse resentment; unfair", "root": "Lat. invidia, 'envy'", "usage": "The invidious comparison between the two siblings caused lasting tension."}, {"word": "Irresolute", "meaning": "Uncertain how to act; indecisive", "root": "Lat. in- + resolvere, 'to resolve'", "usage": "The irresolute board delayed the decision for another three months."}, {"word": "Judicious", "meaning": "Having or showing good judgment", "root": "Lat. judicium, 'judgment'", "usage": "A judicious use of the budget kept the project on track."}, {"word": "Laconically", "meaning": "In a way that uses very few words", "root": "Gk. Lakon, 'a Spartan'", "usage": "He answered laconically, offering nothing beyond a simple 'no.'"}, {"word": "Lampoon", "meaning": "To publicly criticize using ridicule or satire", "root": "Fr. lampon, possibly from a drinking song refrain", "usage": "The magazine lampooned the senator's contradictory statements."}, {"word": "Latent", "meaning": "Existing but not yet developed or manifest", "root": "Lat. latere, 'to lie hidden'", "usage": "The test revealed a latent talent for statistics no one had noticed."}, {"word": "Levity", "meaning": "The treatment of a serious matter with humor", "root": "Lat. levis, 'light'", "usage": "He tried to inject some levity into the otherwise tense negotiation."}, {"word": "Licentious", "meaning": "Promiscuous and unprincipled in sexual matters", "root": "Lat. licentia, 'freedom, license'", "usage": "The court's licentious reputation scandalized visiting diplomats."}, {"word": "Limpid", "meaning": "Clear and transparent", "root": "Lat. limpidus, 'clear'", "usage": "The limpid stream revealed every pebble on its bed."}, {"word": "Loath", "meaning": "Reluctant; unwilling", "root": "OE lath, 'hostile, hateful'", "usage": "She was loath to admit that the plan had failed."}, {"word": "Lucid", "meaning": "Expressed clearly; easy to understand", "root": "Lat. lucidus, 'clear, bright'", "usage": "Even in his final days, he remained remarkably lucid."}, {"word": "Magnanimous", "meaning": "Generous or forgiving, especially toward a rival", "root": "Lat. magnus, 'great' + animus, 'spirit'", "usage": "The champion was magnanimous in victory, praising his opponent's effort."}, {"word": "Malevolent", "meaning": "Having or showing a wish to do harm", "root": "Lat. male, 'badly' + velle, 'to wish'", "usage": "The story's malevolent narrator slowly reveals his true motives."}, {"word": "Malfeasance", "meaning": "Wrongdoing, especially by a public official", "root": "Fr. mal, 'bad' + faisance, 'doing'", "usage": "The audit uncovered years of financial malfeasance at city hall."}, {"word": "Manifest", "meaning": "Clear or obvious to the eye or mind", "root": "Lat. manifestus, 'plainly apparent'", "usage": "Her disappointment was manifest the moment she read the letter."}, {"word": "Meander", "meaning": "To follow a winding course; wander aimlessly", "root": "Gk. Maiandros, a winding river", "usage": "The essay meandered through several unrelated anecdotes before its point."}, {"word": "Meticulous", "meaning": "Showing great attention to detail", "root": "Lat. meticulosus, 'fearful'", "usage": "The forger's meticulous copies fooled even trained experts."}, {"word": "Mollified", "meaning": "Made less angry or hostile", "root": "Lat. mollificare, 'to soften'", "usage": "The customer seemed mollified once she received store credit."}, {"word": "Morass", "meaning": "A complicated or confusing situation", "root": "OF, related to 'marsh'", "usage": "The trial dissolved into a legal morass of conflicting testimony."}, {"word": "Nonchalant", "meaning": "Feeling or appearing casually calm", "root": "Fr. non, 'not' + chaloir, 'to be concerned'", "usage": "He remained nonchalant even as the deadline slipped past."}, {"word": "Nonplussed", "meaning": "Surprised and confused; unsure how to react", "root": "Lat. non plus, 'no more'", "usage": "She was momentarily nonplussed by the unexpected question."}, {"word": "Obdurately", "meaning": "In a stubbornly persistent manner", "root": "Lat. obdurare, 'to harden'", "usage": "He obdurately refused to consider any alternative proposal."}, {"word": "Obtuse", "meaning": "Annoyingly insensitive or slow to understand", "root": "Lat. obtusus, 'blunted'", "usage": "It seemed almost willfully obtuse to miss such an obvious hint."}, {"word": "Palpable", "meaning": "Able to be touched or felt; obvious", "root": "Lat. palpare, 'to touch gently'", "usage": "The tension in the courtroom was palpable as the verdict was read."}, {"word": "Paradigm", "meaning": "A typical example or pattern of something", "root": "Gk. paradeigma, 'pattern'", "usage": "The discovery forced a complete paradigm shift in the field."}, {"word": "Parochial", "meaning": "Having a limited or narrow outlook", "root": "Lat. parochia, 'parish'", "usage": "His parochial view of the market ignored international competitors."}, {"word": "Pathos", "meaning": "A quality that evokes pity or sadness", "root": "Gk. pathos, 'suffering'", "usage": "The film's final scene relied heavily on pathos to land its message."}, {"word": "Peremptory", "meaning": "Insisting on immediate attention; imperious", "root": "Lat. peremptorius, 'destructive, decisive'", "usage": "His peremptory tone left no room for questions."}, {"word": "Perennial", "meaning": "Lasting for a long or apparently infinite time", "root": "Lat. per- + annus, 'year'", "usage": "Funding remained a perennial problem for the small theater company."}, {"word": "Perturb", "meaning": "To make anxious or unsettled", "root": "Lat. perturbare, 'to confuse greatly'", "usage": "The strange noise from the engine perturbed even the veteran pilot."}, {"word": "Pervasive", "meaning": "Spreading widely throughout an area", "root": "Lat. pervadere, 'to spread through'", "usage": "A pervasive smell of smoke lingered for days after the fire."}, {"word": "Pious", "meaning": "Devoutly religious, or making a show of virtue", "root": "Lat. pius, 'dutiful'", "usage": "His pious speeches never quite matched his private conduct."}, {"word": "Placate", "meaning": "To make someone less angry or hostile", "root": "Lat. placare, 'to calm'", "usage": "The airline offered vouchers to placate the stranded passengers."}, {"word": "Plausible", "meaning": "Seeming reasonable or probable", "root": "Lat. plausibilis, 'worthy of applause'", "usage": "His alibi seemed plausible until the timeline was checked."}, {"word": "Poignant", "meaning": "Evoking a keen sense of sadness or regret", "root": "Lat. pungere, 'to prick'", "usage": "The poignant ending stayed with the audience long after the credits rolled."}, {"word": "Precarious", "meaning": "Not securely held; dangerously uncertain", "root": "Lat. precarius, 'obtained by entreaty'", "usage": "The ladder rested in a precarious position against the wet wall."}, {"word": "Preclude", "meaning": "To prevent from happening; make impossible", "root": "Lat. praecludere, 'to close off'", "usage": "The scarring precluded him from ever playing professionally again."}, {"word": "Predilection", "meaning": "A preference or special liking for something", "root": "Lat. praediligere, 'to prefer'", "usage": "He had a predilection for obscure jazz recordings from the 1950s."}, {"word": "Premonition", "meaning": "A strong feeling that something is about to happen", "root": "Lat. praemonere, 'to warn beforehand'", "usage": "She had a premonition of trouble long before the phone rang."}, {"word": "Pretentious", "meaning": "Attempting to impress by affecting greater importance", "root": "Lat. praetendere, 'to claim'", "usage": "Critics found the restaurant's menu descriptions unbearably pretentious."}, {"word": "Pristine", "meaning": "In its original condition; unspoiled", "root": "Lat. pristinus, 'former, original'", "usage": "The lake remained pristine, untouched by decades of development nearby."}, {"word": "Prodigious", "meaning": "Remarkably or impressively great in extent", "root": "Lat. prodigiosus, 'marvelous'", "usage": "The child showed a prodigious talent for chess by age six."}, {"word": "Proliferate", "meaning": "To increase rapidly in number", "root": "Lat. proles, 'offspring' + ferre, 'to bear'", "usage": "Online scams proliferated as more people worked remotely."}, {"word": "Provincial", "meaning": "Having a narrow or unsophisticated outlook", "root": "Lat. provincia, 'province'", "usage": "His provincial attitude toward foreign cuisine limited his travels."}, {"word": "Prudish", "meaning": "Excessively concerned about modesty or propriety", "root": "Fr. prude, 'excessively proper'", "usage": "The prudish censors cut the scene entirely from the broadcast."}, {"word": "Putative", "meaning": "Generally considered or reputed to be", "root": "Lat. putare, 'to think, reckon'", "usage": "The putative leader of the movement has never spoken publicly."}, {"word": "Quandary", "meaning": "A state of uncertainty over what to do", "root": "Origin uncertain", "usage": "She found herself in a quandary over which offer to accept."}, {"word": "Rapacious", "meaning": "Aggressively greedy or grasping", "root": "Lat. rapere, 'to seize'", "usage": "The rapacious developer bought up half the block within a year."}, {"word": "Recant", "meaning": "To say that one no longer holds an opinion", "root": "Lat. recantare, 'to sing again, revoke'", "usage": "Under pressure, the scientist was forced to recant his findings."}, {"word": "Redress", "meaning": "Remedy or compensation for a wrong", "root": "OF redrecier, 'to set right'", "usage": "The lawsuit sought redress for years of unpaid overtime."}, {"word": "Refute", "meaning": "To prove a statement or theory to be wrong", "root": "Lat. refutare, 'to repel, rebut'", "usage": "The new fossil evidence refuted the earlier theory entirely."}, {"word": "Reiterate", "meaning": "To say something again for emphasis", "root": "Lat. re- + iterare, 'to repeat'", "usage": "The teacher reiterated the deadline three separate times."}, {"word": "Relinquish", "meaning": "To voluntarily give up a position or right", "root": "Lat. relinquere, 'to leave behind'", "usage": "He reluctantly relinquished control of the family business."}, {"word": "Remonstrate", "meaning": "To make a forcefully reproachful protest", "root": "Lat. remonstrare, 'to point out'", "usage": "Workers remonstrated against the sudden change in scheduling."}, {"word": "Renege", "meaning": "To go back on a promise", "root": "Lat. renegare, 'to deny'", "usage": "The contractor reneged on the agreed price after the work began."}, {"word": "Repose", "meaning": "A state of rest, tranquility, or calm", "root": "Lat. repausare, 'to rest again'", "usage": "The garden offered a quiet spot of repose in the middle of the city."}, {"word": "Reprehensible", "meaning": "Deserving strong condemnation", "root": "Lat. reprehendere, 'to blame'", "usage": "The coach's treatment of the injured player was widely called reprehensible."}, {"word": "Rescission", "meaning": "The cancellation of a contract", "root": "Lat. rescindere, 'to cut off'", "usage": "The buyer sought rescission of the contract after discovering the defect."}, {"word": "Reticence", "meaning": "The quality of not revealing one's thoughts", "root": "Lat. reticere, 'to keep silent'", "usage": "His usual reticence made the outburst even more surprising."}, {"word": "Retract", "meaning": "To draw back or withdraw a statement", "root": "Lat. retrahere, 'to draw back'", "usage": "The newspaper was forced to retract the story within a day."}, {"word": "Reverent", "meaning": "Feeling or showing deep respect", "root": "Lat. revereri, 'to stand in awe of'", "usage": "The visitors fell silent, reverent before the ancient monument."}, {"word": "Ribald", "meaning": "Referring to sexual matters in a humorous way", "root": "OF ribauld, 'a rogue'", "usage": "The tavern echoed with ribald jokes late into the night."}, {"word": "Sagacity", "meaning": "The quality of being wise and shrewd", "root": "Lat. sagax, 'wise'", "usage": "Her sagacity in reading the market saved the fund from collapse."}, {"word": "Sanguine", "meaning": "Optimistic or positive, especially in a difficult situation", "root": "Lat. sanguis, 'blood'", "usage": "Despite the setbacks, she remained sanguine about the project's future."}, {"word": "Scathing", "meaning": "Witheringly harsh in criticism", "root": "ON skatha, 'to injure'", "usage": "The scathing review effectively ended the play's short run."}, {"word": "Scrupulous", "meaning": "Diligent, thorough, and extremely attentive to detail", "root": "Lat. scrupulus, 'a small sharp stone'", "usage": "The scrupulous accountant caught the discrepancy no one else noticed."}, {"word": "Sedate", "meaning": "Calm, dignified, and unhurried", "root": "Lat. sedare, 'to settle, calm'", "usage": "The sedate pace of the village stood in sharp contrast to the city."}, {"word": "Sinecure", "meaning": "A position requiring little work but giving a salary", "root": "Lat. sine cura, 'without care'", "usage": "The ceremonial title was widely regarded as a sinecure."}, {"word": "Skeptic", "meaning": "A person inclined to question accepted opinions", "root": "Gk. skeptikos, 'inquiring'", "usage": "As a skeptic, she demanded evidence before accepting the claim."}, {"word": "Slothful", "meaning": "Lazy; disinclined to activity or exertion", "root": "OE slaewth, related to 'slow'", "usage": "The slothful summer afternoons stretched on with nothing to do."}, {"word": "Sophistry", "meaning": "The use of clever but false arguments", "root": "Gk. sophistes, 'wise man, sophist'", "usage": "The debate quickly descended into sophistry rather than substance."}, {"word": "Specious", "meaning": "Superficially plausible, but actually wrong", "root": "Lat. speciosus, 'good-looking, plausible'", "usage": "His specious reasoning convinced the jury for exactly one afternoon."}, {"word": "Sporadic", "meaning": "Occurring at irregular intervals", "root": "Gk. sporadikos, 'scattered'", "usage": "Sporadic gunfire could be heard throughout the first night."}, {"word": "Squander", "meaning": "To waste money or resources carelessly", "root": "ME squanderen, 'to scatter'", "usage": "He squandered the inheritance on a series of failed ventures."}, {"word": "Stalwart", "meaning": "Loyal, reliable, and hardworking", "root": "OE st\u00e6lwierthe, 'serviceable, worthy'", "usage": "The old librarian was a stalwart presence for over forty years."}, {"word": "Stultify", "meaning": "To cause to appear foolish or absurd", "root": "Lat. stultus, 'foolish' + facere, 'to make'", "usage": "The repetitive assembly-line work stultified even the most motivated workers."}, {"word": "Subjugate", "meaning": "To bring under domination or control", "root": "Lat. sub, 'under' + jugum, 'yoke'", "usage": "The empire sought to subjugate every neighboring territory."}, {"word": "Substantiate", "meaning": "To provide evidence to support a claim", "root": "Lat. substantia, 'substance'", "usage": "The lab results substantiated the whistleblower's original claims."}, {"word": "Superfluous", "meaning": "Unnecessary, especially through being more than enough", "root": "Lat. superfluus, 'overflowing'", "usage": "The editor cut every superfluous adjective from the final draft."}, {"word": "Supplant", "meaning": "To supersede and take the place of", "root": "Lat. supplantare, 'to trip up'", "usage": "Digital cameras quickly supplanted film in the professional market."}, {"word": "Surmise", "meaning": "To suppose something without firm evidence", "root": "OF surmettre, 'to accuse'", "usage": "From the muddy tracks, the ranger surmised a bear had passed recently."}, {"word": "Tacit", "meaning": "Understood without being stated", "root": "Lat. tacitus, 'silent'", "usage": "There was a tacit agreement that no one would mention the accident."}, {"word": "Tantamount", "meaning": "Equivalent in seriousness to", "root": "OF tant + amont, 'as much as'", "usage": "Refusing to answer was tantamount to admitting guilt."}, {"word": "Temerity", "meaning": "Excessive confidence or boldness", "root": "Lat. temeritas, 'rashness'", "usage": "He had the temerity to correct the judge in open court."}, {"word": "Tepid", "meaning": "Only slightly enthusiastic; lukewarm", "root": "Lat. tepidus, 'lukewarm'", "usage": "The album received a tepid response from critics and fans alike."}, {"word": "Terse", "meaning": "Sparing in the use of words; abrupt", "root": "Lat. tersus, 'wiped clean'", "usage": "His terse reply gave no hint of what had gone wrong."}, {"word": "Torrid", "meaning": "Very hot and dry; passionate and intense", "root": "Lat. torridus, 'parched'", "usage": "They endured a torrid summer with no relief from the drought."}, {"word": "Transgress", "meaning": "To go beyond the limits of what is acceptable", "root": "Lat. transgredi, 'to step across'", "usage": "The novel's protagonist transgresses every social rule of her era."}, {"word": "Trepidation", "meaning": "A feeling of fear or anxiety about something", "root": "Lat. trepidare, 'to be alarmed'", "usage": "She approached the interview with more trepidation than confidence."}, {"word": "Truncate", "meaning": "To shorten by cutting off the end", "root": "Lat. truncare, 'to cut off'", "usage": "The editor truncated the quote in a way that changed its meaning."}, {"word": "Turbid", "meaning": "Cloudy or opaque; confused", "root": "Lat. turbidus, 'disturbed'", "usage": "The turbid floodwater made it impossible to see the riverbed."}, {"word": "Tyro", "meaning": "A beginner or novice", "root": "Lat. tiro, 'young recruit'", "usage": "Even as a tyro, she outplayed several seasoned veterans."}, {"word": "Unassailable", "meaning": "Unable to be attacked, questioned, or defeated", "root": "Lat. in- + assilire, 'to leap upon'", "usage": "His alibi was unassailable, backed by a dozen witnesses."}, {"word": "Undermine", "meaning": "To weaken gradually or insidiously", "root": "OE, 'to dig beneath'", "usage": "Constant leaks to the press undermined trust in the administration."}, {"word": "Untoward", "meaning": "Unexpected and inappropriate or inconvenient", "root": "OE to- + weard, 'toward'", "usage": "Nothing untoward happened during the otherwise routine inspection."}, {"word": "Vainglorious", "meaning": "Excessively proud of oneself; boastful", "root": "Lat. vanus, 'empty' + gloria, 'glory'", "usage": "His vainglorious speech took credit for work done entirely by his team."}, {"word": "Vapidity", "meaning": "The state of being dull or unstimulating", "root": "Lat. vapidus, 'flat, spiritless'", "usage": "The vapidity of the small talk made the hour feel endless."}, {"word": "Veneer", "meaning": "An attractive appearance that masks true nature", "root": "Fr. fournir, 'to furnish'", "usage": "Behind the veneer of civility lay a fierce corporate rivalry."}, {"word": "Venerate", "meaning": "To regard with great respect", "root": "Lat. venerari, 'to worship'", "usage": "The village still venerates the founder who built its first well."}, {"word": "Verdant", "meaning": "Green with vegetation; lush", "root": "OF verd, 'green'", "usage": "The valley was verdant even in the driest months of summer."}, {"word": "Vestigial", "meaning": "Forming a remnant of something that once existed", "root": "Lat. vestigium, 'footprint'", "usage": "The vestigial wings serve no purpose for the flightless bird."}, {"word": "Vociferous", "meaning": "Vehement or clamorous; loud", "root": "Lat. vox, 'voice' + ferre, 'to carry'", "usage": "A vociferous minority dominated the otherwise quiet town hall meeting."}, {"word": "Wan", "meaning": "Pale, especially because of illness or exhaustion", "root": "OE wann, 'dark, gloomy'", "usage": "He looked wan and tired after the overnight shift."}, {"word": "Wary", "meaning": "Feeling caution about possible dangers", "root": "OE waer, 'aware, cautious'", "usage": "The deer stayed wary, ears alert to every sound in the brush."}, {"word": "Wheedle", "meaning": "To use flattery to persuade someone", "root": "Origin uncertain, possibly Ger.", "usage": "She wheedled her way into an extra week of vacation."}, {"word": "Zenith", "meaning": "The time at which something is most powerful", "root": "Ar. samt, 'path, direction'", "usage": "The empire reached its zenith just before the century-long decline began."}];
+const STORAGE_KEY = 'satFlashcards_v1_marked';
+
+function loadMarkedFromStorage(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return new Set();
+    const arr = JSON.parse(raw);
+    if (!Array.isArray(arr)) return new Set();
+    return new Set(arr.filter(i => Number.isInteger(i) && i >= 0 && i < WORDS.length));
+  }catch(e){
+    console.warn('Could not read saved marks:', e);
+    return new Set();
+  }
+}
+
+function persistMarked(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(marked)));
+    flashSaveStatus('Saved');
+  }catch(e){
+    console.warn('Could not save marks:', e);
+    flashSaveStatus('Could not save (storage unavailable)');
+  }
+}
+
+let saveStatusTimer = null;
+function flashSaveStatus(text){
+  const el = document.getElementById('saveStatus');
+  if (!el) return;
+  el.textContent = text;
+  clearTimeout(saveStatusTimer);
+  saveStatusTimer = setTimeout(() => { el.textContent = ''; }, 1500);
+}
+
+let order = WORDS.map((_, i) => i);
+let pos = 0;
+let flipped = false;
+let shuffled = false;
+let marked = loadMarkedFromStorage();
+let reviewMode = marked.size > 0;
+let activeList = order;
+let restoredOnLoad = marked.size > 0;
+
+const stage = document.getElementById('stage');
+const card = document.getElementById('card');
+const wordFront = document.getElementById('wordFront');
+const wordBack = document.getElementById('wordBack');
+const meaningVal = document.getElementById('meaningVal');
+const rootVal = document.getElementById('rootVal');
+const usageVal = document.getElementById('usageVal');
+const posLabel = document.getElementById('posLabel');
+const progressFill = document.getElementById('progressFill');
+const shuffleLabel = document.getElementById('shuffleLabel');
+const markedCount = document.getElementById('markedCount');
+const reviewModeBtn = document.getElementById('reviewModeBtn');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+
+function currentWordIndex(){
+  return activeList[pos];
+}
+
+function render(){
+  const w = WORDS[currentWordIndex()];
+  wordFront.textContent = w.word;
+  wordBack.textContent = w.word;
+  meaningVal.textContent = w.meaning;
+  rootVal.textContent = w.root;
+  usageVal.textContent = w.usage;
+
+  posLabel.textContent = (pos + 1) + ' / ' + activeList.length;
+  progressFill.style.width = ((pos + 1) / activeList.length * 100) + '%';
+  shuffleLabel.textContent = shuffled ? 'Shuffled' : 'In order';
+  markedCount.textContent = marked.size + ' marked';
+  reviewModeBtn.textContent = reviewMode ? 'Exit review mode' : 'Study marked only';
+
+  prevBtn.disabled = pos === 0;
+  nextBtn.disabled = pos === activeList.length - 1;
+
+  card.classList.add('no-anim');
+  card.classList.toggle('flipped', false);
+  flipped = false;
+  requestAnimationFrame(() => card.classList.remove('no-anim'));
+
+  updateMarkButtonLabel();
+}
+
+function updateMarkButtonLabel(){
+  const isMarked = marked.has(currentWordIndex());
+  markBtn.textContent = isMarked ? '\u2605 Marked' : '\u2606 Mark for review';
+}
+
+function flip(){
+  flipped = !flipped;
+  card.classList.toggle('flipped', flipped);
+}
+
+function go(delta){
+  const next = pos + delta;
+  if (next < 0 || next >= activeList.length) return;
+  pos = next;
+  render();
+}
+
+function shuffleArray(arr){
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function rebuildActiveList(){
+  const base = reviewMode ? order.filter(i => marked.has(i)) : order.slice();
+  activeList = base;
+  if (activeList.length === 0){
+    reviewMode = false;
+    activeList = order.slice();
+  }
+  pos = 0;
+}
+
+document.getElementById('flipBtn').addEventListener('click', flip);
+prevBtn.addEventListener('click', () => go(-1));
+nextBtn.addEventListener('click', () => go(1));
+
+document.getElementById('shuffleBtn').addEventListener('click', () => {
+  order = shuffleArray(order);
+  shuffled = true;
+  rebuildActiveList();
+  render();
+});
+
+document.getElementById('orderBtn').addEventListener('click', () => {
+  order = WORDS.map((_, i) => i);
+  shuffled = false;
+  rebuildActiveList();
+  render();
+});
+
+const markBtn = document.getElementById('markBtn');
+markBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  const idx = currentWordIndex();
+  if (marked.has(idx)) marked.delete(idx);
+  else marked.add(idx);
+  persistMarked();
+  render();
+});
+
+reviewModeBtn.addEventListener('click', () => {
+  reviewMode = !reviewMode;
+  rebuildActiveList();
+  render();
+});
+
+document.getElementById('restartBtn').addEventListener('click', () => {
+  pos = 0;
+  render();
+});
+
+document.getElementById('clearMarksBtn').addEventListener('click', () => {
+  if (marked.size === 0) return;
+  const ok = confirm('Clear all ' + marked.size + ' marked words? This removes your saved review list from this browser.');
+  if (!ok) return;
+  marked.clear();
+  persistMarked();
+  reviewMode = false;
+  rebuildActiveList();
+  render();
+});
+
+document.getElementById('exitReviewOnLoadBtn').addEventListener('click', () => {
+  reviewMode = false;
+  document.getElementById('restoreBanner').classList.add('hidden');
+  rebuildActiveList();
+  render();
+});
+
+// --- Touch swipe navigation (iPhone) ---
+let touchStartX = 0, touchStartY = 0, suppressNextClick = false;
+stage.addEventListener('touchstart', (e) => {
+  const t = e.changedTouches[0];
+  touchStartX = t.clientX;
+  touchStartY = t.clientY;
+}, { passive: true });
+
+stage.addEventListener('touchend', (e) => {
+  const t = e.changedTouches[0];
+  const dx = t.clientX - touchStartX;
+  const dy = t.clientY - touchStartY;
+  if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.4) {
+    suppressNextClick = true;
+    if (dx < 0) go(1); else go(-1);
+  }
+}, { passive: true });
+
+stage.addEventListener('click', () => {
+  if (suppressNextClick) { suppressNextClick = false; return; }
+  flip();
+});
+
+// --- Trackpad horizontal swipe navigation (MacBook Air) ---
+let wheelCooldown = false;
+stage.addEventListener('wheel', (e) => {
+  if (Math.abs(e.deltaX) > Math.abs(e.deltaY) && Math.abs(e.deltaX) > 28) {
+    if (wheelCooldown) return;
+    wheelCooldown = true;
+    if (e.deltaX > 0) go(1); else go(-1);
+    setTimeout(() => { wheelCooldown = false; }, 380);
+  }
+}, { passive: true });
+
+// --- iOS "Add to Home Screen" tip (shown once) ---
+(function iosTip(){
+  const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const isStandalone = window.navigator.standalone === true;
+  const dismissed = localStorage.getItem('satFlashcards_iosTipDismissed') === '1';
+  if (isIos && !isStandalone && !dismissed) {
+    document.getElementById('iosTipBanner').classList.remove('hidden');
+  }
+})();
+document.getElementById('dismissIosTipBtn').addEventListener('click', () => {
+  document.getElementById('iosTipBanner').classList.add('hidden');
+  try { localStorage.setItem('satFlashcards_iosTipDismissed', '1'); } catch(e){}
+});
+
+// --- Offline support via service worker (only works when served over http/https) ---
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === ' ' || e.key === 'Enter'){ e.preventDefault(); flip(); }
+  else if (e.key === 'ArrowRight'){ go(1); }
+  else if (e.key === 'ArrowLeft'){ go(-1); }
+  else if (e.key.toLowerCase() === 's'){ document.getElementById('shuffleBtn').click(); }
+});
+
+if (restoredOnLoad){
+  const banner = document.getElementById('restoreBanner');
+  const text = document.getElementById('restoreBannerText');
+  text.textContent = 'Restored ' + marked.size + ' marked word' + (marked.size === 1 ? '' : 's') +
+    ' from your last session \u2014 reviewing that list only.';
+  banner.classList.remove('hidden');
+}
+
+rebuildActiveList();
+render();
+</script>
+</body>
+</html>
